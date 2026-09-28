@@ -669,7 +669,10 @@ export default function App() {
   return (
     <div className="app">
       <header className="toolbar">
-        <span className="brand">corcho</span>
+        <span className="brand">
+          <img className="brand-logo" src="/favicon.svg" alt="" />
+          corcho
+        </span>
         <input
           className="path-input"
           value={pathInput}

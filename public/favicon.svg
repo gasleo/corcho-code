@@ -1,20 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Tablero de corcho con marco de tinta, como los botones de la app -->
-  <rect x="3" y="3" width="58" height="58" rx="12" fill="#c49a6c" stroke="#2a1c10" stroke-width="4"/>
-  <g fill="#8a5a2c" opacity="0.55">
-    <circle cx="13" cy="15" r="1.6"/><circle cx="50" cy="12" r="1.3"/><circle cx="12" cy="48" r="1.5"/>
-    <circle cx="52" cy="50" r="1.7"/><circle cx="22" cy="53" r="1.2"/><circle cx="47" cy="30" r="1.2"/>
+  <!-- Corcho: un loro sobre una rama, con una tormenta atrás -->
+  <defs>
+    <clipPath id="sq"><rect x="3" y="3" width="58" height="58" rx="12"/></clipPath>
+    <path id="boltMain" d="M36 5 L33 10 L37 13.5 L30 20 L33 24 L25 32 L27.5 36 L19 46 L21 50 L13 62" fill="none" stroke-linecap="round"/>
+    <path id="boltBranches" d="M37 13.5 L44 15 L48 20 L53 21.5 M30 20 L22 21.5 L17 26 L10 27.5 M33 24 L40 27 M25 32 L16 34 L11 40 L7 41 M27.5 36 L34 39 M19 46 L12 48 L8 53" fill="none" stroke-linecap="round"/>
+  </defs>
+  <g clip-path="url(#sq)">
+    <!-- cielo iluminado por el relámpago -->
+    <rect x="3" y="3" width="58" height="58" fill="#4a4e86"/>
+    <!-- nubes -->
+    <path d="M0 4 H64 V11 C58 14 53 10 48 13 C42 16 37 11 31 14 C25 17 19 11 13 14 C8 16 4 12 0 14 Z" fill="#39424f"/>
+    <path d="M0 12 C4 10 8 14 13 12 C19 9 25 15 31 12 C37 9 42 14 48 11 C53 8 58 12 64 9 V14 C58 17 53 13 48 16 C42 19 37 14 31 17 C25 20 19 14 13 17 C8 19 4 15 0 17 Z" fill="#4c5667"/>
+    <!-- lluvia -->
+    <path d="M52 24 l-1.5 4 M58 38 l-1.5 4 M47 32 l-1.5 4 M6 44 l-1.5 4" stroke="#7d8fb3" stroke-opacity="0.55" stroke-width="1.1" stroke-linecap="round"/>
+    <!-- relámpago, lejos y a la izquierda -->
+    <g transform="translate(3 9) scale(0.68)" opacity="0.9">
+      <use href="#boltMain" stroke="#8fa2ff" stroke-opacity="0.25" stroke-width="6"/>
+      <use href="#boltBranches" stroke="#8fa2ff" stroke-opacity="0.18" stroke-width="3.5"/>
+      <use href="#boltMain" stroke="#c7d1ff" stroke-width="2.4"/>
+      <use href="#boltBranches" stroke="#c7d1ff" stroke-width="1.3"/>
+      <use href="#boltMain" stroke="#ffffff" stroke-width="1"/>
+      <use href="#boltBranches" stroke="#ffffff" stroke-width="0.5"/>
+    </g>
+    <!-- loro sobre la rama -->
+    <g transform="translate(5 7) scale(0.8)">
+      <path d="M18 55 H90" stroke="#8d5a2b" stroke-width="4" stroke-linecap="round"/>
+      <path d="M22 44 L9 60 L15 62 L28 49 Z" fill="#2e7d32" stroke="#141820" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M26 29 C17 37 19 51 30 53 C41 55 47 45 45 34 C43 27 32 24 26 29 Z" fill="#43a047" stroke="#141820" stroke-width="2.6" stroke-linejoin="round"/>
+      <path d="M41 30 C46 36 46 46 37 52 C34 45 34 36 41 30 Z" fill="#dfe5e8" stroke="#141820" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M27 33 C22 40 24 48 32 51 C30 45 30 38 27 33 Z" fill="#2e7d32" stroke="#141820" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="37" cy="21" r="12" fill="#43a047" stroke="#141820" stroke-width="2.6"/>
+      <path d="M38 26 C42 31 46 31 48 28 L46 24 Z" fill="#dfe5e8"/>
+      <path d="M46 16 C54 16 57 25 52 31 C51 28 49 26.5 45.5 26.5 Z" fill="#f5b041" stroke="#141820" stroke-width="2.2" stroke-linejoin="round"/>
+      <circle cx="40" cy="18" r="3.8" fill="#fffaf0" stroke="#141820" stroke-width="1.8"/>
+      <circle cx="41" cy="18.2" r="1.8" fill="#141820"/>
+      <path d="M29 52 v4 M35 52 v4" stroke="#f5b041" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
   </g>
-  <!-- Hilo rojo que sale de la ficha -->
-  <path d="M30 22 Q 44 46 52 20" fill="none" stroke="#c62828" stroke-width="3.2" stroke-linecap="round"/>
-  <circle cx="52" cy="20" r="3.4" fill="#efe6d2" stroke="#2a1c10" stroke-width="1.8"/>
-  <!-- Ficha de papel, apenas torcida -->
-  <g transform="rotate(-8 28 36)">
-    <rect x="15" y="20" width="26" height="31" fill="#fffaf0" stroke="#2a1c10" stroke-width="2.6"/>
-    <rect x="16.3" y="21.3" width="23.4" height="8" fill="#5fd8d2"/>
-    <path d="M19 37 H37 M19 43 H33" stroke="#1f4e8c" stroke-opacity="0.45" stroke-width="2" stroke-linecap="round"/>
-  </g>
-  <!-- Chinche roja -->
-  <circle cx="30" cy="22" r="5.6" fill="#d32f2f" stroke="#2a1c10" stroke-width="2"/>
-  <circle cx="28.2" cy="20.2" r="1.7" fill="#fff" opacity="0.7"/>
+  <rect x="3" y="3" width="58" height="58" rx="12" fill="none" stroke="#141820" stroke-width="4"/>
 </svg>
