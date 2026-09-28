@@ -1,3 +1,5 @@
+<p align="center"><img src="public/favicon.svg" width="128" height="128" alt="Logo de Corcho: un loro verde sobre una rama en una tormenta"></p>
+
 # corcho-code
 
 [English](README.md) · **Español**

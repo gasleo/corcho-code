@@ -1,3 +1,5 @@
+<p align="center"><img src="public/favicon.svg" width="128" height="128" alt="Corcho logo: a green parrot on a branch in a storm"></p>
+
 # corcho-code
 
 **English** · [Español](README.es.md)
