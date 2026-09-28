@@ -10,10 +10,6 @@ It reads JavaScript/TypeScript, C#/.NET and CSS/Sass out of the box, and **new l
 
 ![Corkboard theme: the project tree pinned on cork, with yarn between the selected file and its imports](docs/screenshots/corkboard.png)
 
-![Subspace: the selected file in the middle, who uses it on the left and what it uses on the right, grouped by directory](docs/screenshots/subspace.png)
-
-![Code window in vim mode, with a visual-line selection and cross-file symbols underlined](docs/screenshots/vim.png)
-
 ```bash
 npm install
 npm run dev
@@ -50,6 +46,10 @@ Each column is **grouped by directory**: files living in the same folder sit tog
 
 The subspace does not touch the tree: pressing **exit** brings you back exactly to the previous state — the same open folders and the same nodes where you left them. Right-click a neighbor to jump to *its* subspace, so you can follow a dependency chain without getting lost.
 
+
+![Subspace: the selected file in the middle, who uses it on the left and what it uses on the right, grouped by directory](docs/screenshots/subspace.png)
+
+
 ### Code windows
 
 With a file selected, **code** (or "view code" in the panel) opens it in a floating window: drag it by its title bar, resize it from the corner, and open as many as you like to compare them side by side.
@@ -63,6 +63,9 @@ The controls follow the macOS convention: **traffic lights at the top left** —
 - **Pin** (◎ / ◉, top right) keeps that window above the others even when you click another one. Handy to keep a reference file in sight while you open others.
 - Built-in, dependency-free syntax highlighting (`highlight.ts`), with one lexer for JS/TS and another for stylesheets: running a `.css` through the JS one turned the first `url(/img/a.png)` into a regular expression and swallowed half the sheet.
 - **Connections are marked in the code**: every identifier coming from another file is highlighted and underlined, with the source path in its tooltip; Ctrl+click opens that file in another window. What the file itself exports gets its own color. You can follow a function to where it is defined without leaving the canvas. In a stylesheet, `$gap`, `--brand` or the mixin of an `@include` play the identifier's role: Ctrl+click opens the partial where it is defined.
+
+![Code window in vim mode, with a visual-line selection and cross-file symbols underlined](docs/screenshots/vim.png)
+
 
 ### Vim-style editing
 
