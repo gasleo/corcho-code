@@ -6,6 +6,14 @@ El nombre sale del tablero de corcho: clavás las fichas, las movés donde te si
 
 Visor de código como canvas: el proyecto se dibuja como un grafo de nodos sueltos —carpetas y ficheros con su icono— que podés arrastrar a mano, y encima se ven las importaciones entre ficheros y qué símbolos se usan de cada uno.
 
+Lee JavaScript/TypeScript, C#/.NET y CSS/Sass de fábrica, y **se pueden sumar lenguajes nuevos como plugins**: cada uno implementa la interfaz `LanguageAnalyzer` en su propio módulo, sin tocar el núcleo (ver [Lenguajes](#lenguajes)).
+
+![Tema corcho: el árbol del proyecto clavado en el corcho, con hilo entre el fichero seleccionado y sus imports](docs/screenshots/corkboard.png)
+
+![Subespacio: el fichero seleccionado en el centro, quién lo usa a la izquierda y lo que usa a la derecha, agrupado por directorio](docs/screenshots/subspace.png)
+
+![Ventana de código en modo vim, con una selección visual por líneas y los símbolos de otros ficheros subrayados](docs/screenshots/vim.png)
+
 ```bash
 npm install
 npm run dev

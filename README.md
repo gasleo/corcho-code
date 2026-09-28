@@ -6,6 +6,14 @@
 
 A code viewer laid out as a canvas: the project is drawn as a graph of free-floating nodes —folders and files with their icons— that you can drag around by hand, and on top of it you see the imports between files and which symbols each one uses from the others.
 
+It reads JavaScript/TypeScript, C#/.NET and CSS/Sass out of the box, and **new languages are added as plugins**: each one implements the `LanguageAnalyzer` interface in its own module, without touching the core (see [Languages](#languages)).
+
+![Corkboard theme: the project tree pinned on cork, with yarn between the selected file and its imports](docs/screenshots/corkboard.png)
+
+![Subspace: the selected file in the middle, who uses it on the left and what it uses on the right, grouped by directory](docs/screenshots/subspace.png)
+
+![Code window in vim mode, with a visual-line selection and cross-file symbols underlined](docs/screenshots/vim.png)
+
 ```bash
 npm install
 npm run dev
