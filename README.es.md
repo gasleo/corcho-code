@@ -185,7 +185,7 @@ El estilo cartoon vive de dos cosas: el contorno y la sombra dura. Son dos color
 
 Hay tres temas, que se recorren con el botón de la barra o la tecla <kbd>t</kbd> (el botón muestra el glifo del siguiente):
 
-- **corcho** (el predeterminado) — el tablero que le da nombre a la app. El lienzo es corcho de verdad, con textura generada (una baldosa con gránulos, siempre la misma gracias a una semilla fija); las aristas resaltadas son hilo rojo y azul con su sombra sobre el corcho; los nombres van en etiquetas de papel, y los nodos que moviste a mano llevan una chincheta. Paneles y barra son papel kraft.
+- **corcho** (el predeterminado) — el tablero que le da nombre a la app. El lienzo es corcho de verdad, con textura generada (una baldosa con gránulos, siempre la misma gracias a una semilla fija); los ficheros son fichas de papel apenas torcidas (una franja con el color y el tipo, y renglones) y las carpetas son carpetas manila, todas clavadas con una chinche — roja en los nodos que moviste a mano. Con aristas curvas, los imports son hilo que cuelga de chinche a chinche y se arquea hacia un costado entre fichas de la misma columna; los resaltados son rojos o azules, con hebras y sombra sobre el corcho. Los conectores del árbol pasan a una línea de lápiz cortada y los nombres van en etiquetas de papel. Paneles y barra son papel kraft.
 - **oscuro** — pantalla de terminal.
 - **claro** — papel.
 

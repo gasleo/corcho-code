@@ -56,6 +56,15 @@ export interface CanvasPalette {
   labelTagEdge?: string;
   /** Los nodos movidos a mano se marcan con una chinche en vez de un punto. */
   pushpin?: boolean;
+  /** Fichas de papel y carpetas manila clavadas, en lugar de los iconos planos. */
+  icons?: 'pinned';
+  /** Cabeza de la chinche de los nodos que no se movieron. */
+  pinHead?: string;
+  /** Las aristas curvas se dibujan como hilo que cuelga entre chinches. */
+  yarn?: boolean;
+  /** Conectores del árbol: trazo cortado y grosor propios del tema. */
+  linkDash?: number[];
+  linkWidth?: number;
   /** Sombra de las aristas resaltadas: el hilo se despega del tablero. */
   stringShadow?: string;
 }
@@ -123,6 +132,11 @@ export const CANVAS_THEME: Record<ThemeName, CanvasPalette> = {
     labelTag: '#fffaf0',
     labelTagEdge: 'rgba(58, 36, 16, 0.35)',
     pushpin: true,
+    icons: 'pinned',
+    pinHead: '#efe6d2',
+    yarn: true,
+    linkDash: [5, 4],
+    linkWidth: 1.5,
     stringShadow: 'rgba(40, 20, 5, 0.4)',
   },
 };

@@ -185,7 +185,7 @@ The cartoon style relies on two things: the outline and the hard shadow. They ar
 
 There are three themes, cycled with the toolbar button or the <kbd>t</kbd> key (the button shows the glyph of the next one):
 
-- **corkboard** (the default) — the board the app is named after. The canvas is actual cork, with a generated texture (a tile of granules, always the same thanks to a fixed seed); highlighted edges are red and blue yarn casting a shadow on the cork; names sit on paper tags, and nodes you moved by hand get a pushpin. Panels and toolbar are kraft paper.
+- **corkboard** (the default) — the board the app is named after. The canvas is actual cork, with a generated texture (a tile of granules, always the same thanks to a fixed seed); files are slightly tilted index cards (a colored band with the file type, ruled lines) and folders are manila folders, each pinned with a pushpin — red on the nodes you moved by hand. With curved edges, imports are yarn hanging from pin to pin, bowing sideways between cards in the same column; highlighted ones are red or blue, twisted and casting a shadow on the cork. Tree connectors become a dashed pencil line and names sit on paper tags. Panels and toolbar are kraft paper.
 - **dark** — a terminal screen.
 - **light** — paper.
 

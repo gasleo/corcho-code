@@ -1,6 +1,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import type { Graph, TreeNode } from '../shared/types';
-import { drawFile, drawFolder } from './icons';
+import { drawFile, drawFolder, drawPinnedFile, drawPinnedFolder, drawPushpin, pinOffset } from './icons';
 import type { EdgeShape } from './settings';
 import { corkPattern } from './cork';
 import type { CanvasPalette } from './theme';
@@ -273,7 +273,8 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
       if (!node.children.length) continue;
       const moving = !!draggingTree && draggingTree.has(node.id);
       ctx.strokeStyle = moving ? palette.edgeOut : palette.link;
-      ctx.lineWidth = moving ? 2.5 : 2;
+      ctx.lineWidth = moving ? 2.5 : (palette.linkWidth ?? 2);
+      ctx.setLineDash(moving ? [] : (palette.linkDash ?? []));
       // La linea baja (o sube) por debajo del icono, nunca por la etiqueta.
       const bus = sx(node.x);
       const py = sy(node.y);
@@ -295,6 +296,7 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
         ctx.stroke();
       }
     }
+    ctx.setLineDash([]);
 
     // --- imports ---
     const showAll = focus ? true : edgeMode === 'all';
@@ -322,8 +324,34 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
         let endX: number;
         let ang: number;
 
+        const yarn = !!palette.yarn && edgeShape === 'curve';
         ctx.beginPath();
-        if (edgeShape === 'orthogonal') {
+        if (yarn) {
+          // Hilo de chinche a chinche, que cuelga por su peso. El carril varía
+          // cuánto cuelga, así dos hilos entre zonas vecinas no se tapan.
+          const pa = pinOffset(edge.a.id, ra);
+          const pb = pinOffset(edge.b.id, rb);
+          const x1 = ax + pa.dx;
+          const y1 = ay + pa.dy;
+          endX = bx + pb.dx;
+          const y2 = by + pb.dy;
+          ang = 0;
+          const lane = lanes.get(edge.a.id) ?? 0;
+          const dist = Math.hypot(endX - x1, y2 - y1);
+          const sag = (18 * Math.min(1.4, Math.max(0.4, scale)) + dist * 0.12) * (1 + lane * 0.12);
+          // Entre fichas de la misma columna colgar no alcanza: el hilo caería
+          // sobre ellas. Cuanto más vertical es el tramo, más se arquea hacia
+          // la izquierda, del lado contrario a las etiquetas.
+          const across = Math.abs(endX - x1) / (dist || 1);
+          const along = Math.abs(y2 - y1) / (dist || 1);
+          ctx.moveTo(x1, y1);
+          ctx.quadraticCurveTo(
+            (x1 + endX) / 2 - sag * 2 * along,
+            (y1 + y2) / 2 + sag * 2 * across,
+            endX,
+            y2,
+          );
+        } else if (edgeShape === 'orthogonal') {
           // Tramos rectos por un canal vertical. Si origen y destino están casi
           // en la misma columna, el canal se corre a la derecha de los dos para
           // que la línea no caiga encima de los iconos.
@@ -385,8 +413,20 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
           ctx.shadowOffsetY = 0;
           ctx.shadowBlur = 0;
         }
+        if (mode && palette.yarn) {
+          // Las hebras: un trazo claro cortado encima da la torsión del hilo.
+          const width = ctx.lineWidth;
+          ctx.setLineDash([width * 1.1, width * 1.5]);
+          ctx.lineWidth = width * 0.45;
+          ctx.strokeStyle = 'rgba(255, 240, 220, 0.4)';
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.lineWidth = width;
+          ctx.strokeStyle = mode === 'out' ? palette.edgeOut : palette.edgeIn;
+        }
 
-        if (mode) {
+        // El hilo termina bajo la chinche: no lleva punta de flecha.
+        if (mode && !yarn) {
           const size = 8;
           ctx.beginPath();
           ctx.moveTo(endX, by);
@@ -423,7 +463,14 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
       const dim = related.size > 0 && !related.has(node.id);
       ctx.globalAlpha = dim ? 0.42 : 1;
 
-      if (node.node.kind === 'dir') drawFolder(ctx, x, y, r, open.has(node.id), palette.ink);
+      const pinned = palette.icons === 'pinned';
+      // En el corcho todas las fichas van clavadas: la chinche roja marca las
+      // que moviste a mano, el resto lleva una de cabeza clara.
+      const pinColor = offsets.has(node.id) ? palette.pin : (palette.pinHead ?? palette.pin);
+      if (node.node.kind === 'dir') {
+        if (pinned) drawPinnedFolder(ctx, x, y, r, node.id, open.has(node.id), palette.ink, pinColor);
+        else drawFolder(ctx, x, y, r, open.has(node.id), palette.ink);
+      } else if (pinned) drawPinnedFile(ctx, x, y, r, node.id, node.node.name, palette.ink, pinColor);
       else drawFile(ctx, x, y, r, node.node.name, palette.ink);
 
       if (node.id === selectedId || node === active || matches.has(node.id)) {
@@ -433,7 +480,7 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
         ctx.strokeStyle = matches.has(node.id) ? palette.match : palette.ring;
         ctx.stroke();
       }
-      if (offsets.has(node.id)) {
+      if (offsets.has(node.id) && !pinned) {
         if (palette.pushpin) drawPushpin(ctx, x + r * 0.15, y - r * 1.05, Math.max(3, r * 0.3), palette.pin);
         else {
           ctx.beginPath();
@@ -698,24 +745,3 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
     </div>
   );
 });
-
-/** Chinche vista desde arriba: sombra corrida, cabeza de color y un brillo. */
-function drawPushpin(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string) {
-  ctx.beginPath();
-  ctx.ellipse(x + r * 0.35, y + r * 0.45, r, r * 0.8, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(40, 20, 5, 0.35)';
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.lineWidth = Math.max(1, r * 0.18);
-  ctx.strokeStyle = 'rgba(40, 10, 5, 0.6)';
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(x - r * 0.35, y - r * 0.35, r * 0.32, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-  ctx.fill();
-}
