@@ -1,236 +1,131 @@
 # Corcho
 
-El nombre sale del tablero de corcho: clavás las fichas, las movés donde te sirven y las unís con hilo para ver quién depende de quién.
+**English** · [Español](README.es.md)
 
-Visor de código como canvas: el proyecto se dibuja como un grafo de nodos
-sueltos —carpetas y ficheros con su icono— que podés arrastrar a mano, y encima
-se ven las importaciones entre ficheros y qué símbolos se usan de cada uno.
+*Corcho* is Spanish for cork, as in a corkboard: you pin the cards, move them wherever they help you, and tie them together with string to see who depends on whom.
+
+A code viewer laid out as a canvas: the project is drawn as a graph of free-floating nodes —folders and files with their icons— that you can drag around by hand, and on top of it you see the imports between files and which symbols each one uses from the others.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abre http://localhost:5173, escribí la ruta del proyecto y pulsá **Abrir**.
+Open http://localhost:5173, type the path of a project and press **Open**.
 
-## Los paneles
+## Panels
 
-La ventana se divide en tres: un panel a cada lado y el canvas en el medio.
+The window is split in three: a panel on each side and the canvas in the middle.
 
-- **explorador** — el árbol de directorios de siempre, en lista. Comparte el
-  estado de carpetas abiertas con el canvas: lo que desplegás en uno se
-  despliega en el otro. Un clic en un fichero lo selecciona, doble clic abre su
-  código, clic derecho saca el mismo menú que en el canvas, y la fila se trae
-  sola a la vista cuando seleccionás algo desde el lienzo.
-- **detalle** — el inspector de dependencias del fichero seleccionado.
+- **explorer** — the usual directory tree, as a list. It shares the open-folder state with the canvas: what you expand in one expands in the other. Click a file to select it, double-click to open its code, right-click for the same menu as on the canvas; the row scrolls into view by itself when you select something on the canvas.
+- **detail** — the dependency inspector for the selected file.
 
-Los dos paneles se **intercambian de lado** con ⇄ y se **colapsan** a un riel
-angosto con ‹ / › (el riel guarda el nombre en vertical y un botón para volver a
-desplegarlo). La disposición se guarda en `localStorage`, así que la ventana
-queda como la dejaste.
+Both panels **swap sides** with ⇄ and **collapse** into a narrow rail with ‹ / › (the rail keeps the name written vertically and a button to expand it again). The layout is saved in `localStorage`, so the window stays the way you left it.
 
-## Cómo se usa el canvas
+## Using the canvas
 
-El proyecto se dibuja como un árbol ordenado: una columna por nivel, los hijos
-colgando de su carpeta con conectores en ángulo. Es determinista — el mismo
-proyecto se ve siempre igual — y no hay nodos superpuestos.
+The project is drawn as a tidy tree: one column per level, children hanging from their folder with elbow connectors. It is deterministic — the same project always looks the same — and nodes never overlap.
 
-- **Arranca todo plegado**: solo se ve la raíz con su primer nivel. Vas abriendo
-  lo que te interesa en vez de comerte el proyecto entero de golpe.
-- **Clic en una carpeta**: la abre o la cierra. Cerrada, las importaciones de
-  todo lo que hay dentro se agrupan en el propio icono de la carpeta.
-- **Clic en un fichero**: lo fija en el panel derecho.
-- **Arrastrá un nodo** para moverlo de sitio: el subárbol entero viaja con él y
-  se marca mientras lo movés. Si arrastrás una carpeta cerrada y después la
-  abrís, sus hijos aparecen junto a ella, no en el sitio que les tocaba en el
-  árbol original. **Doble clic** devuelve el nodo (y lo que cuelga) a su lugar, y
-  **reordenar** devuelve todos.
-- **Rueda**: zoom · **arrastrar el fondo**: pan · **encuadrar**: centra todo ·
-  **colapsar todo**: cierra todas las carpetas y vuelve al estado inicial.
-- **Imports**: por defecto solo se dibujan los del nodo bajo el cursor o
-  seleccionado — cian lo que importa, rosa quién lo importa, y el resto se
-  apaga. En la barra podés cambiarlo a *todas* o *ninguna*. El grosor de la
-  arista va con la cantidad de usos.
-- El panel derecho lista los símbolos concretos de cada dependencia con cuántas
-  veces se usan (`db ×6`), qué exporta el fichero y qué imports quedaron fuera
-  del proyecto. Clic en una dependencia y el canvas abre la carpeta que la
-  contiene y va hasta ella.
+- **Everything starts collapsed**: only the root and its first level are visible. You open what interests you instead of swallowing the whole project at once.
+- **Click a folder**: opens or closes it. While closed, the imports of everything inside it are grouped on the folder icon itself.
+- **Click a file**: pins it in the detail panel.
+- **Drag a node** to move it: its whole subtree travels with it and is highlighted while you move it. If you drag a closed folder and then open it, its children appear next to it, not where they would have been in the original tree. **Double-click** puts the node (and everything under it) back in place, and **reorder** puts every node back.
+- **Wheel**: zoom · **drag the background**: pan · **fit**: centers everything · **collapse all**: closes every folder and returns to the initial state.
+- **Imports**: by default only the edges of the hovered or selected node are drawn — one color for what it imports, another for who imports it, and everything else fades out. The toolbar switches this to *all* or *none*. Edge thickness follows the number of uses.
+- The detail panel lists the concrete symbols used from each dependency and how many times (`db ×6`), what the file exports, and which imports fall outside the project. Click a dependency and the canvas opens the folder that contains it and pans to it.
 
-### Subespacio
+### Subspace
 
-Para ver de qué depende un fichero sin abrir media estructura: seleccionalo y
-pulsá **subespacio** (o el botón del panel derecho). El canvas pasa a mostrar
-solo ese fichero en el centro, quién lo usa a la izquierda y lo que usa a la
-derecha. Entre los vecinos también se dibujan sus relaciones, en gris.
+To see what a file depends on without opening half the tree: select it and press **subspace** (or the button in the detail panel). The canvas then shows only that file in the center, its dependents on the left and its dependencies on the right. Relations between the neighbors are drawn too, in gray.
 
-Cada columna va **agrupada por directorio**: los ficheros que viven en la misma
-carpeta quedan juntos en una banda con la ruta de la carpeta como cabecera, y
-debajo solo el nombre del fichero. Así se ve de un vistazo si una dependencia
-está desparramada por medio proyecto o concentrada en un par de carpetas.
+Each column is **grouped by directory**: files living in the same folder sit together in a band headed by the folder path, with just the file name below. At a glance you can tell whether a dependency is scattered across the project or concentrated in a couple of folders.
 
-El subespacio no toca el árbol: al pulsar **salir** volvés exactamente al estado
-anterior — las mismas carpetas abiertas y los mismos nodos donde los dejaste.
-Con el clic derecho sobre un vecino saltás a *su* subespacio, así se puede
-seguir una cadena de dependencias sin perderse.
+The subspace does not touch the tree: pressing **exit** brings you back exactly to the previous state — the same open folders and the same nodes where you left them. Right-click a neighbor to jump to *its* subspace, so you can follow a dependency chain without getting lost.
 
-### Ventanas de código
+### Code windows
 
-Con un fichero seleccionado, **código** (o «ver código» en el panel) lo abre en
-una ventana flotante: se arrastra por su barra de título, se redimensiona por la
-esquina y se puede abrir cuantas quieras a la vez para comparar.
+With a file selected, **code** (or "view code" in the panel) opens it in a floating window: drag it by its title bar, resize it from the corner, and open as many as you like to compare them side by side.
 
-Los controles siguen la convención de macOS: **semáforo arriba a la izquierda**
-—rojo cierra, amarillo minimiza a la barra, verde va y vuelve de pantalla
-completa, con el glifo apareciendo al pasar el mouse— y **fijar arriba a la
-derecha**.
+The controls follow the macOS convention: **traffic lights at the top left** —red closes, yellow minimizes to the dock, green toggles fullscreen, with glyphs showing on hover— and **pin at the top right**.
 
-- Numeración de línea siempre visible, con el margen fijo al hacer scroll.
-- **Zoom de la letra** por ventana: los botones `A−`/`A+` de la barra de título
-  o **Ctrl + rueda** sobre el código, entre 9 y 24 px.
-- **wrap** por ventana para cortar o no las líneas largas.
-- **Minimizar** (–) guarda la ventana en la barra de abajo sin perder su
-  tamaño, posición, zoom ni scroll.
-- **Fijar** (◎ / ◉, arriba a la derecha) deja esa ventana por encima de las
-  demás aunque hagas clic en otra. Útil para tener el fichero de referencia
-  siempre a la vista mientras abrís otros.
-- Coloreado de sintaxis propio, sin dependencias (`highlight.ts`), con un léxico
-  para JS/TS y otro para hojas de estilo: pasar un `.css` por el de JS convertía
-  la primera `url(/img/a.png)` en una expresión regular y se comía media hoja.
-- **Las conexiones van marcadas en el código**: cada identificador que viene de
-  otro fichero aparece en cian y subrayado, con la ruta de origen en el tooltip;
-  Ctrl+clic abre ese fichero en otra ventana. Lo que exporta el propio fichero va
-  en verde. Así se sigue una función hasta donde está definida sin salir del
-  canvas. En una hoja de estilo el papel del identificador lo hacen `$gap`,
-  `--brand` o el mixin de un `@include`: Ctrl+clic abre el parcial donde está
-  definido.
+- Line numbers always visible, with a gutter that stays put while scrolling.
+- **Font zoom** per window: the `A−`/`A+` buttons in the title bar or **Ctrl + wheel** over the code, between 9 and 24 px.
+- **wrap** per window, to wrap long lines or not.
+- **Minimize** stores the window in the bottom dock without losing its size, position, zoom or scroll.
+- **Pin** (◎ / ◉, top right) keeps that window above the others even when you click another one. Handy to keep a reference file in sight while you open others.
+- Built-in, dependency-free syntax highlighting (`highlight.ts`), with one lexer for JS/TS and another for stylesheets: running a `.css` through the JS one turned the first `url(/img/a.png)` into a regular expression and swallowed half the sheet.
+- **Connections are marked in the code**: every identifier coming from another file is highlighted and underlined, with the source path in its tooltip; Ctrl+click opens that file in another window. What the file itself exports gets its own color. You can follow a function to where it is defined without leaving the canvas. In a stylesheet, `$gap`, `--brand` or the mixin of an `@include` play the identifier's role: Ctrl+click opens the partial where it is defined.
 
-### Edición con teclas de vim
+### Vim-style editing
 
-**La vista de código es el editor**: no hay un modo de solo lectura aparte. La
-ventana tiene dos pestañas, *código* (vim) y *preview*. El editor se queda con
-**todas** las teclas mientras tiene el foco: Ctrl+R, Ctrl+S, Ctrl+F, Ctrl+P,
-Ctrl+D y Ctrl+U son del editor y no recargan, buscan ni imprimen.
+**The code view is the editor**: there is no separate read-only mode. The window has two tabs, *code* (vim) and *preview*. The editor takes **every** key while focused: Ctrl+R, Ctrl+S, Ctrl+F, Ctrl+P, Ctrl+D and Ctrl+U belong to the editor and do not reload, search or print.
 
-El **mouse maneja el cursor de vim**: un clic lo lleva a ese carácter y
-seleccionar arrastrando entra en modo visual con esa misma selección, así que
-después podés operar con `d`, `y` o `c` sobre lo que marcaste con el mouse. La
-selección nativa del navegador se limpia sola: manda el resaltado de vim.
+**The mouse drives the vim cursor**: a click moves it to that character, and drag-selecting enters visual mode with that same selection, so you can then apply `d`, `y` or `c` to whatever you marked with the mouse. The browser's native selection is cleared: vim's highlight rules.
 
-Las conexiones siguen marcadas dentro del código: los identificadores que vienen
-de otro fichero van en cian, los que exporta el propio fichero en verde.
-**Ctrl+clic** abre el fichero de origen —el clic pelado mueve el cursor— y
-**`gf`** hace lo mismo con el símbolo bajo el cursor, como en vim.
+**Ctrl+click** on a connected identifier opens its source file —a plain click moves the cursor— and **`gf`** does the same with the symbol under the cursor, as in vim.
 
-Lo que hay implementado:
+What is implemented:
 
-- **Movimiento**: `h j k l`, `w b e`, `0 ^ $`, `gg`, `G`, `{n}G`, Ctrl+D / Ctrl+U,
-  con conteo (`3w`, `5j`).
-- **`gf`**: abre el fichero del que viene el símbolo bajo el cursor.
-- **Inserción**: `i a I A o O`, Esc para volver a normal.
-- **Operadores** con movimiento y conteo: `d`, `c`, `y` (`dw`, `d$`, `2dd`, `cw`,
-  `yy`…), más `x D C s J r{char}` y `p` / `P`.
-- **Visual**: `v` y `V`, con `d`, `c`, `y`, `x`.
-- **Deshacer / rehacer**: `u` y Ctrl+R.
-- **Búsqueda**: `/patrón`, `n`, `N`.
-- **Comandos**: `:w`, `:q`, `:q!`, `:wq`, `:x`, `:noh`, `:{número}`.
+- **Motion**: `h j k l`, `w b e`, `0 ^ $`, `gg`, `G`, `{n}G`, Ctrl+D / Ctrl+U, with counts (`3w`, `5j`).
+- **`gf`**: opens the file the symbol under the cursor comes from.
+- **Insert**: `i a I A o O`, Esc back to normal.
+- **Operators** with motion and count: `d`, `c`, `y` (`dw`, `d$`, `2dd`, `cw`, `yy`…), plus `x D C s J r{char}` and `p` / `P`.
+- **Visual**: `v` and `V`, with `d`, `c`, `y`, `x`.
+- **Undo / redo**: `u` and Ctrl+R.
+- **Search**: `/pattern`, `n`, `N`.
+- **Commands**: `:w`, `:q`, `:q!`, `:wq`, `:x`, `:noh`, `:{number}`.
 
-La barra de estado muestra el modo, el fichero, si hay cambios sin guardar
-(`[+]`, también con un punto en el título de la ventana), la posición y las
-teclas a medio comando.
+The status line shows the mode, the file, unsaved changes (`[+]`, also as a dot in the window title), the position and any pending keys.
 
-`:w` **escribe en disco de verdad** — es la única operación de la app que
-modifica el proyecto, vía `PUT /api/file`, acotada a la carpeta abierta. Tras
-guardar, el grafo no se recalcula solo: usá ↻ para volver a analizar.
+`:w` **really writes to disk** — it is the only operation in the app that modifies the project, via `PUT /api/file`, restricted to the opened folder. After saving, the graph is not recomputed automatically: use ↻ to analyze again.
 
-Lo que **no** está: macros, marcas, `.`, registros con nombre, texto-objetos
-(`ciw`, `di(`), reemplazo global (`:s`) y ventanas partidas.
+Not implemented: macros, marks, `.`, named registers, text objects (`ciw`, `di(`), global substitution (`:s`) and split windows.
 
-### Preview de componentes
+### Component preview
 
-En un fichero `.tsx` / `.jsx` la ventana tiene dos pestañas: **código** y
-**preview**. La segunda compila el componente con esbuild —usando las
-dependencias reales del proyecto, su propio `node_modules`— y lo monta en un
-iframe aislado. Debajo aparece un panel con **sus props**, sacadas del AST:
+For a `.tsx` / `.jsx` file, the **preview** tab bundles the component with esbuild —using the project's real dependencies, its own `node_modules`— and mounts it in an isolated iframe. Below it there is a panel with **its props**, taken from the AST:
 
-- una unión de literales (`'sm' | 'md' | 'lg'`) se ofrece como desplegable,
-- `boolean` como casilla, `number` como numérico, `string` como texto,
-- lo demás como JSON, y las funciones se listan pero no se editan,
-- los valores por defecto del destructuring se usan como valor inicial.
+- a union of literals (`'sm' | 'md' | 'lg'`) is offered as a dropdown,
+- `boolean` as a checkbox, `number` as a number field, `string` as text,
+- anything else as JSON; functions are listed but not editable,
+- default values from destructuring are used as initial values.
 
-Cambiar cualquier campo re-renderiza el componente al instante. El fondo del
-lienzo se conmuta entre claro y oscuro para ver cómo se comporta en ambos, y el
-damero de atrás delata si el componente trae fondo propio.
+Changing any field re-renders the component instantly. The stage background toggles between light and dark to see how it behaves in both, and the checkerboard behind it reveals whether the component brings its own background.
 
-**Los estilos globales del proyecto se aplican de verdad.** Un componente con
-clases de Tailwind no se ve con solo empaquetar su JS: las utilidades viven en
-el CSS que genera el build. El preview busca el CSS que carga la app —siguiendo
-el `<script type="module">` del `index.html` hasta sus `import './x.css'`— y lo
-compila con la herramienta del propio proyecto:
+**The project's global styles really apply.** A component styled with Tailwind classes doesn't look right just by bundling its JS: the utilities live in the CSS produced by the build. The preview finds the CSS the app loads —following the `<script type="module">` in `index.html` down to its `import './x.css'`— and compiles it with the project's own tooling:
 
-- **Tailwind v4**: con el `@tailwindcss/node` y el scanner `oxide` del proyecto
-  (entrando por `@tailwindcss/vite` cuando pnpm no los expone directo). Si la
-  hoja no declara `@source`, se escanea `src/` para extraer las clases usadas.
-- **Tailwind v3 / PostCSS**: por el `postcss` del proyecto con su config.
-- **CSS a secas**: se empaqueta con esbuild, resolviendo `@import` y `url()`.
+- **Tailwind v4**: with the project's `@tailwindcss/node` and `oxide` scanner (reached through `@tailwindcss/vite` when pnpm doesn't expose them directly). If the sheet declares no `@source`, `src/` is scanned to extract the classes in use.
+- **Tailwind v3 / PostCSS**: through the project's `postcss` and its config.
+- **Plain CSS**: bundled with esbuild, resolving `@import` and `url()`.
 
-También se enlazan las hojas externas del `index.html` (fuentes, iconos). La
-casilla **estilos** apaga todo esto para ver el componente pelado, y al lado se
-indica qué motor se usó y cuántas hojas se aplicaron.
+External sheets linked from `index.html` (fonts, icons) are linked too. The **styles** checkbox turns all of this off to see the bare component, and next to it you can see which engine was used and how many sheets were applied.
 
-La detección de componentes indexa **todas** las declaraciones del fichero y
-después mira qué se exporta, así que reconoce el patrón habitual de declarar el
-componente suelto y exportarlo al final envuelto:
+Component detection indexes **every** declaration in the file and then looks at what is exported, so it recognizes the common pattern of declaring the component on its own and exporting it wrapped at the end:
 
 ```tsx
 const Screen = () => { … }
-export default observer(Screen)   // también memo, forwardRef, connect…
+export default observer(Screen)   // also memo, forwardRef, connect…
 ```
 
-**React Native también se previsualiza.** El runtime lo pone Corcho: trae
-su propio `react-native-web` y redirige ahí `'react-native'`, sin tocar el
-proyecto. React y react-dom se fuerzan a una única copia — con dos, los hooks
-explotan.
+**React Native is previewed too.** Corcho provides the runtime: it ships its own `react-native-web` and redirects `'react-native'` to it, without touching the project. React and react-dom are forced to a single copy — with two, hooks blow up.
 
-Lo que no puede correr en un navegador se **sustituye por un doble**: envoltorios
-de módulos nativos, SDKs de plataforma, navegación, i18n, assets que no existen
-y cualquier import que el bundler no logre resolver. Cada componente sustituido
-se dibuja como una caja punteada con su nombre, los hooks devuelven un objeto
-que responde a todo y las funciones devuelven su primer argumento (así `t('clave')`
-pinta la clave). La barra dice cuántos módulos se sustituyeron y el tooltip los
-lista. Si aun así el build falla, se reintenta aislando **todas** las
-dependencias externas: se pierde lo que aporten las librerías, pero el JSX y los
-estilos del componente siguen siendo los de verdad.
+Whatever cannot run in a browser is **replaced with a stand-in**: native module wrappers, platform SDKs, navigation, i18n, missing assets and any import the bundler cannot resolve. Each stubbed component is drawn as a dashed box with its name, hooks return an object that answers to everything, and functions return their first argument (so `t('key')` renders the key). The toolbar says how many modules were stubbed and the tooltip lists them. If the build still fails, it is retried isolating **all** external dependencies: you lose what the libraries contribute, but the component's JSX and styles are still the real ones.
 
-Los alias de `babel-plugin-module-resolver` (`components/ui/Button`) se resuelven
-contra `src/` antes de darse por vencido, así que los componentes propios del
-proyecto entran de verdad, no como huecos.
+`babel-plugin-module-resolver` aliases (`components/ui/Button`) are resolved against `src/` before giving up, so the project's own components come in for real, not as holes.
 
-### Hojas de estilo
+### Stylesheets
 
-esbuild no trae Sass, así que un proyecto con `.scss` moría con «No loader is
-configured for .scss files». El preview las compila con el `sass` del propio
-proyecto (y con el nuestro como respaldo, si no lo tiene) y convierte cada hoja
-en un módulo JS que hace dos cosas: inyecta el CSS en el documento y exporta el
-mapa de clases, que es lo que necesita un `import styles from './x.module.scss'`.
+esbuild has no Sass support, so a project with `.scss` files died with "No loader is configured for .scss files". The preview compiles them with the project's own `sass` (falling back to ours if it has none) and turns each sheet into a JS module that does two things: injects the CSS into the document and exports the class map, which is what `import styles from './x.module.scss'` needs.
 
-Las clases no se renombran —el preview monta un componente solo, no hay
-colisiones que evitar— y el mapa devuelve el nombre tal cual para cualquier
-clase que no encuentre, así una hoja incompleta no rompe el render. Lo que no se
-pueda compilar (`.less`, `.styl`, un `@use` roto) se salta con aviso en la barra
-en vez de tumbar el build.
+Classes are not renamed —the preview mounts a single component, so there are no collisions to avoid— and the map returns the name as-is for any class it doesn't know, so an incomplete sheet doesn't break rendering. Whatever cannot be compiled (`.less`, `.styl`, a broken `@use`) is skipped with a warning in the toolbar instead of failing the build.
 
-### Armazón de la app
+### App shell
 
-Un componente que usa `useLocation`, `Link` o `useNavigate` explota si no hay un
-Router arriba, y eso no dice nada del componente: es contexto que en la app real
-pone el arranque. Si el proyecto tiene `react-router-dom`, el preview envuelve lo
-que renderiza en un `MemoryRouter` por su cuenta, y lo avisa en la barra para que
-quede claro que ese contexto lo puso él y no el componente.
+A component that uses `useLocation`, `Link` or `useNavigate` blows up without a Router above it, and that says nothing about the component: that context is provided by the app's bootstrap. If the project has `react-router-dom`, the preview wraps what it renders in a `MemoryRouter` on its own, and says so in the toolbar to make clear that the context came from the preview, not from the component.
 
-### Proveedores del proyecto
+### Project providers
 
-Una pantalla que necesita store, i18n o tema falla al montarse suelta. Para eso,
-un fichero opcional en la raíz del proyecto:
+A screen that needs a store, i18n or a theme fails when mounted on its own. For that, there is an optional file at the project root:
 
 ```tsx
 // corcho.preview.tsx
@@ -239,230 +134,149 @@ export function Providers({ children }) {
 }
 ```
 
-El preview envuelve con eso todo lo que renderiza. Si no existe y el componente
-falla, el propio error explica cómo crearlo.
-Para el resto de los casos —dependencias sin instalar, un alias que esbuild no
-resuelve— el error de compilación se muestra tal cual, que suele ser justo lo
-que hace falta saber.
+The preview wraps everything it renders with it. If it doesn't exist and the component fails, the error itself explains how to create it. For everything else —uninstalled dependencies, an alias esbuild cannot resolve— the build error is shown as-is, which is usually exactly what you need to know.
 
-### La barra de ventanas
+### The dock
 
-Abajo del todo hay una barra donde viven todas las ventanas de código abiertas.
-Sirve para no tapar el canvas cuando abrís muchas:
+At the very bottom there is a bar holding every open code window. It keeps the canvas clear when you open many:
 
-- **Arrastrá una ventana hasta la barra** y se guarda ahí (la barra se ilumina
-  mientras la traés). El botón – hace lo mismo.
-- Cada ventana es una ficha: punto lleno si está abierta, hueco si está
-  guardada. Un clic la restaura o la trae al frente; la ✕ la cierra.
-- **Arrastrá las fichas de costado** para ordenarlas, o **hacia arriba** para
-  sacar esa ventana de la barra y dejarla donde sueltes.
+- **Drag a window onto the dock** and it is stored there (the dock lights up while you bring it over). The yellow button does the same.
+- Each window is a chip: filled dot when open, hollow when stored. A click restores it or brings it to the front; ✕ closes it.
+- **Drag chips sideways** to reorder them, or **upwards** to take that window out of the dock and drop it wherever you release it.
 
-### Menú contextual
+### Context menu
 
-Clic derecho sobre un fichero, una carpeta, el fondo del canvas o una ventana de
-código. Cambia según lo que haya debajo: ver código, ver en subespacio, centrar,
-abrir todo lo de dentro, copiar ruta, encuadrar, colapsar, minimizar, pantalla
-completa, zoom de la letra, cerrar las demás. **Doble clic sobre un fichero abre
-su código** directamente.
+Right-click a file, a folder, the canvas background or a code window. It adapts to what is under the pointer: view code, view in subspace, center, open everything inside, copy path, fit, collapse, minimize, fullscreen, font zoom, close the others. **Double-clicking a file opens its code** directly.
 
-### El filtro
+### Filter
 
-Escribí en el campo de filtro y el canvas pasa a mostrar **solo** los ficheros
-que coinciden, con las carpetas que llevan hasta ellos abiertas. El contador de
-la derecha dice cuántos son y limpia el filtro de un clic (o <kbd>Esc</kbd>).
+Type in the filter field and the canvas shows **only** the matching files, with the folders leading to them open. The counter on the right says how many there are and clears the filter with one click (or <kbd>Esc</kbd>).
 
-El filtro no toca el estado del árbol: al limpiarlo vuelve exactamente a las
-carpetas que tenías abiertas antes.
+The filter doesn't touch the tree state: clearing it brings back exactly the folders you had open before.
 
-### Lo que se guarda
+### What is saved
 
-En `localStorage`: la disposición de los paneles y el tema, y por proyecto las
-carpetas abiertas, las ventanas de código
-—con su posición, tamaño, zoom de letra, wrap, si están fijadas y si están
-guardadas en la barra— y el modo de imports. Al reabrir el mismo proyecto todo
-vuelve como lo dejaste; lo que ya no existe en disco se descarta solo. El tema
-se guarda aparte, porque no depende del proyecto.
+In `localStorage`: the panel layout and the theme, and per project the open folders, the code windows —with their position, size, font zoom, wrap, whether they are pinned and whether they are stored in the dock— and the imports mode. Reopening the same project brings everything back as you left it; whatever no longer exists on disk is discarded silently. The theme is stored separately, since it doesn't depend on the project.
 
-Los iconos: carpeta cerrada / carpeta abierta, y una hoja por fichero con el
-color y la etiqueta de su tipo (TS, TSX, JS, JSX, CSS…). El tamaño del nodo de
-fichero va con sus líneas de código.
+Icons: closed folder / open folder, and a sheet per file with the color and label of its type (TS, TSX, JS, JSX, CSS…). A file node's size follows its lines of code.
 
-## Configuración
+## Settings
 
-El botón ⚙ de la barra abre el panel de preferencias. Se aplica en vivo y se
-guarda en `localStorage` (`corcho:settings`).
+The ⚙ button in the toolbar opens the preferences panel. Changes apply live and are saved in `localStorage` (`corcho:settings`).
 
-**Trazo de las aristas**, con dos opciones:
+**Theme**: corkboard, dark or light, with a picker. Same as the toolbar button and the <kbd>t</kbd> key, without having to cycle through all three.
 
-- **curvas** — el trazo suelto de siempre, cómodo cuando los nodos están lejos.
-- **ortogonales** — tramos rectos con esquinas redondeadas: la arista sale
-  horizontal del origen, sube o baja por un canal vertical y entra horizontal al
-  destino, como un diagrama. Si origen y destino están casi en la misma columna,
-  el canal se corre a la derecha de los dos para no pasar por encima de los
-  iconos.
+**Edge style**, two options:
 
-Cada nodo origen tiene **su propio carril**, y la vuelta atrás entre el mismo par
-usa media calle más. Sin eso todas las aristas bajaban por la misma columna y se
-tapaban: se veían tres líneas donde había quince. En modo curvas, el carril
-también varía la panza del trazo por el mismo motivo.
+- **curved** — the classic loose stroke, comfortable when nodes are far apart.
+- **orthogonal** — straight segments with rounded corners: the edge leaves the source horizontally, goes up or down a vertical channel and enters the target horizontally, like a diagram. When source and target are almost in the same column, the channel moves to the right of both so it doesn't run over the icons.
 
-**Colores**, con selector y campo hexadecimal por cada uno: acento (que también
-pinta las aristas de «importa»), «lo importan», fondo, paneles, texto, exports y
-coincidencias. Cada tema guarda su propio juego —lo que funciona en oscuro no
-funciona en claro— y lo que no toques sigue al tema. Cada fila tiene su ↺ para
-volver al valor original, y abajo hay un restablecer general.
+Each source node gets **its own lane**, and the way back between the same pair uses an extra half lane. Without that, every edge went down the same column and they covered each other: you saw three lines where there were fifteen. In curved mode, the lane also varies the bulge of the curve for the same reason.
 
-Los colores viajan a los dos lados: se escriben como variables CSS en el
-documento y se vuelcan sobre la paleta del lienzo, que no puede leer CSS.
+**Colors**, with a picker and a hex field for each: accent (which also paints "imports" edges), "imported by", background, panels, text, exports and matches. Each theme keeps its own set —what works in dark doesn't work in light— and anything you don't touch follows the theme. Every row has its own ↺ to go back to the original value, and there is a global reset at the bottom.
 
-## Aspecto
+Colors travel both ways: they are written as CSS variables on the document and merged into the canvas palette, which cannot read CSS.
 
-El estilo es **terminal · cartoon · minimalista**: todo en monoespaciada,
-contornos gruesos, sombras duras sin difuminar, colores planos y una sola
-familia de acentos. Los iconos del lienzo llevan el mismo trazo negro que los
-botones, así el canvas y la interfaz se leen como una sola cosa.
+## Look
 
-El estilo cartoon vive de dos cosas: el contorno y la sombra dura. Son dos
-colores distintos, no uno. El contorno es tinta negra en ambos temas, porque va
-sobre rellenos claros (iconos, semáforo, insignias). La sombra, en cambio, tiene
-que contrastar contra el **fondo**: negra sobre papel en el tema claro, y un gris
-azulado más claro que el fondo en el oscuro — si fuera negra, como estaba, no se
-vería nada.
+The style is **terminal · cartoon · minimalist**: monospace everywhere, thick outlines, hard unblurred shadows, flat colors and a single family of accents. Canvas icons use the same dark stroke as the buttons, so canvas and interface read as one thing.
 
-Hay dos temas — **oscuro** (pantalla de terminal) y **claro** (papel) — con el
-botón ☀/☾ de la barra o la tecla <kbd>t</kbd>. La elección se guarda en el
-navegador; la primera vez se toma de `prefers-color-scheme`. El lienzo no puede
-leer variables CSS mientras pinta, así que la paleta vive dos veces, en
-`styles.css` y en `theme.ts`, con los mismos nombres.
+The cartoon style relies on two things: the outline and the hard shadow. They are two different colors, not one. The outline is dark ink in every theme, because it sits on light fills (icons, traffic lights, badges). The shadow, on the other hand, must contrast against the **background**: black on paper in the light theme, and a bluish gray lighter than the background in the dark one — if it were black, you wouldn't see anything.
 
-### Atajos
+There are three themes, cycled with the toolbar button or the <kbd>t</kbd> key (the button shows the glyph of the next one):
 
-| tecla | acción |
+- **corkboard** (the default) — the board the app is named after. The canvas is actual cork, with a generated texture (a tile of granules, always the same thanks to a fixed seed); highlighted edges are red and blue yarn casting a shadow on the cork; names sit on paper tags, and nodes you moved by hand get a pushpin. Panels and toolbar are kraft paper.
+- **dark** — a terminal screen.
+- **light** — paper.
+
+The choice is saved in the browser; with nothing saved, the app starts on the corkboard.
+
+The canvas cannot read CSS variables while painting, so the palette lives twice, in `styles.css` and in `theme.ts`, with the same names.
+
+### Shortcuts
+
+| key | action |
 | --- | --- |
-| <kbd>f</kbd> | encuadrar |
-| <kbd>c</kbd> | colapsar todo |
-| <kbd>r</kbd> | reordenar los nodos movidos |
-| <kbd>/</kbd> | ir al filtro |
-| <kbd>o</kbd> | abrir el código del fichero seleccionado |
-| <kbd>s</kbd> | subespacio del fichero seleccionado |
-| <kbd>t</kbd> | cambiar de tema |
-| <kbd>Esc</kbd> | salir de pantalla completa → del subespacio → de la selección |
+| <kbd>f</kbd> | fit |
+| <kbd>c</kbd> | collapse all |
+| <kbd>r</kbd> | reorder moved nodes |
+| <kbd>/</kbd> | go to the filter |
+| <kbd>o</kbd> | open the selected file's code |
+| <kbd>s</kbd> | subspace of the selected file |
+| <kbd>t</kbd> | switch theme (corkboard → dark → light) |
+| <kbd>Esc</kbd> | leave fullscreen → the subspace → the selection |
 
-## Cómo está armado
+## How it's built
 
 ```
-server/          API local que analiza el proyecto
-  analysis/      el contrato: interfaz de analizador y registro de plugins
-  languages/     un módulo por lenguaje (typescript.ts, csharp.ts, stylesheet.ts)
-  scan.ts        recorre el árbol preguntándole al registro qué ficheros valen
-  analyze.ts     parseo sintáctico con el compilador de TypeScript
-  resolve.ts     resuelve especificadores a ficheros reales (extensiones, index,
-                 baseUrl y paths del tsconfig, `./foo.js` -> `foo.ts`, parciales
-                 de Sass); cada lenguaje le pasa sus reglas
-  graph.ts       arma el árbol y las aristas, sin saber de lenguajes
-  components.ts  detecta componentes exportados y sus props (AST)
-  preview.ts     empaqueta un componente con esbuild para el preview
-  styleLoader.ts compila CSS, Sass y CSS Modules para el preview
-  styles.ts      compila el CSS global del proyecto (Tailwind v4/v3, postcss)
-src/              la interfaz
-  Explorer.tsx    árbol de directorios del panel lateral
-  treeLayout.ts   árbol ordenado (una columna por nivel, hojas en filas
-                  consecutivas, carpetas centradas sobre sus hijos) y el
-                  layout de tres columnas del subespacio
-  icons.ts        dibujo de los iconos de carpeta y de fichero
-  theme.ts        paleta del lienzo y conmutador de tema
-  settings.ts     preferencias: colores propios y trazo de las aristas
-  SettingsPanel.tsx  el panel de configuración
-  highlight.ts    tokenizadores propios de JS/TS y de hojas de estilo, para
-                  colorear y detectar nombres
-  CodeWindow.tsx  ventana flotante de código: arrastre, resize, foco y wrap
-  vim.ts          motor de vim (función pura: tecla + estado -> estado)
-  VimEditor.tsx   editor con el motor de vim y la línea de estado
-  PreviewPane.tsx render del componente en un iframe + panel de props
-  CanvasGraph.tsx render en canvas 2D, zoom/pan, arrastre y resaltado
-  Inspector.tsx   panel de dependencias del fichero seleccionado
+server/          local API that analyzes the project
+  analysis/      the contract: analyzer interface and plugin registry
+  languages/     one module per language (typescript.ts, csharp.ts, stylesheet.ts)
+  scan.ts        walks the tree asking the registry which files count
+  analyze.ts     syntactic parsing with the TypeScript compiler
+  resolve.ts     resolves specifiers to real files (extensions, index,
+                 tsconfig baseUrl and paths, `./foo.js` -> `foo.ts`, Sass
+                 partials); each language passes its own rules
+  graph.ts       builds the tree and the edges, language-agnostic
+  components.ts  detects exported components and their props (AST)
+  preview.ts     bundles a component with esbuild for the preview
+  styleLoader.ts compiles CSS, Sass and CSS Modules for the preview
+  styles.ts      compiles the project's global CSS (Tailwind v4/v3, postcss)
+src/              the interface
+  Explorer.tsx    directory tree in the side panel
+  treeLayout.ts   tidy tree (one column per level, leaves on consecutive
+                  rows, folders centered over their children) and the
+                  three-column subspace layout
+  icons.ts        drawing of folder and file icons
+  theme.ts        canvas palettes and theme cycle
+  cork.ts         generated cork texture for the corkboard theme
+  settings.ts     preferences: custom colors and edge style
+  SettingsPanel.tsx  the settings panel
+  highlight.ts    built-in JS/TS and stylesheet tokenizers, for coloring
+                  and name detection
+  CodeWindow.tsx  floating code window: drag, resize, focus and wrap
+  vim.ts          vim engine (pure function: key + state -> state)
+  VimEditor.tsx   editor with the vim engine and the status line
+  PreviewPane.tsx component render in an iframe + props panel
+  CanvasGraph.tsx 2D canvas rendering, zoom/pan, dragging and highlighting
+  Inspector.tsx   dependency panel for the selected file
 ```
 
-El análisis es **sintáctico**, no hace chequeo de tipos: por eso un proyecto
-mediano se analiza en cientos de milisegundos. La contrapartida es que los usos
-se cuentan por nombre del identificador, así que una variable local con el mismo
-nombre que un import inflaría la cuenta.
+The analysis is **syntactic** and does no type checking: that's why a mid-sized project is analyzed in a few hundred milliseconds. The trade-off is that uses are counted by identifier name, so a local variable named like an import would inflate the count.
 
-## Lenguajes
+## Languages
 
-El núcleo no sabe de lenguajes. Define una interfaz —`LanguageAnalyzer` en
-`server/analysis/types.ts`, junto a quien la consume— y cada lenguaje la
-implementa en su propio módulo, registrado en `server/languages/index.ts`.
-`graph.ts` reparte los ficheros entre los analizadores y no conoce a ninguno.
+The core knows nothing about languages. It defines an interface —`LanguageAnalyzer` in `server/analysis/types.ts`, next to its consumer— and each language implements it in its own module, registered in `server/languages/index.ts`. `graph.ts` dispatches files to the analyzers without knowing any of them.
 
-El contrato va en **dos fases**, y esa es la decisión de diseño que importa:
+The contract has **two phases**, and that is the design decision that matters:
 
-1. `parse(fichero)` saca hechos de un fichero mirándolo solo a él.
-2. `link(contexto)` recibe el proyecto entero ya indexado y recién ahí produce
-   las aristas.
+1. `parse(file)` extracts facts from a file looking only at that file.
+2. `link(context)` receives the whole project, already indexed, and only then produces the edges.
 
-Hace falta así porque no todos los lenguajes resuelven igual. En JS/TS un import
-apunta a una ruta y se resuelve con el fichero delante. En C# no: `using Foo.Bar`
-nombra un espacio de nombres repartido en muchos ficheros, y dos tipos del mismo
-namespace ni siquiera necesitan `using`. Ahí la dependencia se deduce al revés
-—qué tipo declara cada fichero, qué tipos usa cada uno— y para eso hay que tener
-todo indexado antes.
+It has to be this way because not every language resolves the same. In JS/TS an import points to a path and is resolved with the file at hand. In C# it isn't: `using Foo.Bar` names a namespace spread across many files, and two types in the same namespace don't even need a `using`. There the dependency is inferred the other way around —which type each file declares, which types each file uses— and that requires everything to be indexed first.
 
-| lenguaje | extensiones | cómo saca las aristas |
+| language | extensions | how edges are found |
 | --- | --- | --- |
-| **JS / TypeScript** | `.ts .tsx .js .jsx .mjs .cjs .mts .cts` | AST del compilador de TS; el especificador se resuelve a un fichero (extensiones, `index`, `baseUrl` y `paths` del tsconfig) |
-| **C# / .NET** | `.cs` | índice de tipo declarado → fichero, y después qué tipos usa cada uno; los `using` que no caen en un namespace del proyecto quedan como externos |
-| **CSS / Sass** | `.css .scss .sass .less .styl` | `@use`, `@forward`, `@import` y el `composes` de CSS Modules; los símbolos salen de cruzar lo que la hoja destino ofrece con lo que la de origen usa |
+| **JS / TypeScript** | `.ts .tsx .js .jsx .mjs .cjs .mts .cts` | TS compiler AST; specifiers are resolved to files (extensions, `index`, tsconfig `baseUrl` and `paths`) |
+| **C# / .NET** | `.cs` | index of declared type → file, then which types each file uses; `using`s that don't match a project namespace are listed as external |
+| **CSS / Sass** | `.css .scss .sass .less .styl` | `@use`, `@forward`, `@import` and CSS Modules `composes`; symbols come from matching what the target sheet offers against what the source sheet uses |
 
-Para sumar uno nuevo: implementar la interfaz y agregarlo a la lista de
-`registerBuiltinLanguages()`. El plugin declara también qué directorios ignorar
-(`node_modules` para JS, `bin`/`obj` para .NET) y qué ficheros descartar
-(`.d.ts`, `*.Designer.cs`, `*.min.css`), así que el scanner tampoco tiene reglas
-por lenguaje.
+To add a new one: implement the interface and add it to the list in `registerBuiltinLanguages()`. The plugin also declares which directories to ignore (`node_modules` for JS, `bin`/`obj` for .NET) and which files to skip (`.d.ts`, `*.Designer.cs`, `*.min.css`), so the scanner has no per-language rules either.
 
-Las **hojas de estilo son nodos como cualquier otro**: importan y las importan.
-Una hoja depende de otras por `@use`, `@forward`, `@import` o el `composes` de
-CSS Modules, y a su vez es dependencia del módulo que la trae —esa arista la
-pone el analizador de JS/TS, que resuelve `./App.css` contra el proyecto entero
-en vez de darlo por externo—. Así un `.tsx` conecta con su `.module.scss`, ese
-`.scss` con el `_index.scss` de los tokens y ese con cada parcial, que es el
-recorrido que antes había que hacer a mano.
+**Stylesheets are nodes like any other**: they import and are imported. A sheet depends on others through `@use`, `@forward`, `@import` or CSS Modules `composes`, and is in turn a dependency of the module that loads it —that edge comes from the JS/TS analyzer, which resolves `./App.css` against the whole project instead of treating it as external—. So a `.tsx` connects to its `.module.scss`, that `.scss` to the tokens' `_index.scss`, and that one to each partial, which is the path you used to walk by hand.
 
-El detalle de la arista cuesta más que en JS, porque `@use "variables"` no dice
-qué trae: hay que deducirlo. Cada hoja publica lo que ofrece —`$variables`,
-`--custom-properties`, `@mixin`, `@function`, clases y placeholders— y el enlace
-cruza eso con lo que la otra usa. Un `_index.scss` que solo hace `@forward`
-ofrece lo de los ficheros que reenvía, así que quien lo usa ve los nombres de
-verdad y no un fichero vacío. La resolución imita a la del compilador: parciales
-con `_` y `_index.scss` de un directorio. Un especificador suelto —`variables`,
-`src/styles/mixins`— se busca en cada directorio desde el fichero que lo pide
-hacia arriba: las loadPaths de verdad viven en la config del bundler, y la
-convención es que cuelgan de la raíz del paquete, que en un monorepo no es la
-raíz de lo que estás mirando. Lo que queda fuera del árbol —`tailwindcss`,
-`~bootstrap/…`, `sass:math`, una hoja de Google Fonts— aparece como externo,
-igual que un paquete de npm.
+Edge detail is harder than in JS, because `@use "variables"` doesn't say what it brings in: it has to be inferred. Each sheet publishes what it offers —`$variables`, `--custom-properties`, `@mixin`, `@function`, classes and placeholders— and linking matches that against what the other sheet uses. An `_index.scss` that only does `@forward` offers what its forwarded files offer, so whoever uses it sees the real names and not an empty file. Resolution mimics the compiler's: `_` partials and a directory's `_index.scss`. A bare specifier —`variables`, `src/styles/mixins`— is searched in each directory from the requesting file upwards: the real loadPaths live in the bundler config, and by convention they hang from the package root, which in a monorepo is not the root of what you are looking at. Whatever falls outside the tree —`tailwindcss`, `~bootstrap/…`, `sass:math`, a Google Fonts sheet— shows up as external, just like an npm package.
 
-Los alias de bundler que viven en `vite.config.ts` o en el webpack del proyecto
-no se leen: si un `@use "@estilos/tema"` no cae en el `tsconfig`, queda como
-externo.
+Bundler aliases defined in `vite.config.ts` or the project's webpack config are not read: if an `@use "@styles/theme"` isn't covered by `tsconfig`, it stays external.
 
-Sobre C# en particular: el parser quita comentarios y literales, y después
-reconoce `namespace`, `using` (incluidos `static`, alias y `global`), las
-declaraciones de `class`/`interface`/`struct`/`enum`/`record` —también las
-anidadas y las `partial`, que enlazan a todos sus ficheros— y cuenta los
-identificadores en PascalCase como candidatos a tipo. Es una heurística de
-convención, no un compilador: un tipo que se llame igual que otro de otro
-namespace puede generar una arista de más, y las llamadas por reflexión o por
-inyección de dependencias no aparecen.
+About C# in particular: the parser strips comments and literals, then recognizes `namespace`, `using` (including `static`, aliases and `global`), `class`/`interface`/`struct`/`enum`/`record` declarations —nested and `partial` ones too, which link to all their files— and counts PascalCase identifiers as type candidates. It is a convention-based heuristic, not a compiler: a type named like another one in a different namespace can produce an extra edge, and calls through reflection or dependency injection don't show up.
 
-## Estado
+## Status
 
-Primer hito: árbol navegable con iconos, carpetas que se abren y cierran, nodos
-movibles, subespacio de relaciones, ventanas de código con las conexiones
-marcadas, y aristas de import con detalle de símbolos.
+First milestone: a navigable tree with icons, folders that open and close, movable nodes, a relations subspace, code windows with connections marked, and import edges with symbol detail.
 
-Lo que sigue natural desde acá:
+Natural next steps:
 
-- Nivel de funciones dentro del fichero al hacer zoom (el parser ya tiene el AST).
-- Java, Python y PHP: son otro `LanguageAnalyzer` cada uno, sin tocar el núcleo.
-- Empaquetar como app de escritorio con Tauri: el server ya está aislado del UI.
+- Function level inside a file when zooming in (the parser already has the AST).
+- Java, Python and PHP: one more `LanguageAnalyzer` each, without touching the core.
+- Package it as a desktop app with Tauri: the server is already isolated from the UI.
