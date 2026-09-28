@@ -1,0 +1,13 @@
+# dependencias y builds
+node_modules/
+dist/
+
+# configuración personal de Claude Code (los permisos locales no van al repo)
+.claude/settings.local.json
+
+# ruido del sistema y los editores
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
