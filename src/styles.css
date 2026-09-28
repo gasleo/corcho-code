@@ -85,6 +85,61 @@
   color-scheme: light;
 }
 
+/* ---------------------------------------------------------------
+   CORCHO — el tablero que le da nombre a la app. Nunca es el tema
+   predeterminado. --bg deja de ser "el fondo" y pasa a ser papel:
+   es lo que usan los inputs y el código, que no se leerían sobre
+   corcho. El corcho va solo en el fondo de la app y en el lienzo.
+   --------------------------------------------------------------- */
+:root[data-theme='corkboard'] {
+  --bg: #fffaf0;
+  --surface: #f6ead2;
+  --surface-2: #ecdcbc;
+  --surface-3: #e2cfa9;
+  --line: #2a1c10;
+  --border: rgba(42, 28, 16, 0.28);
+  --border-strong: #2a1c10;
+  --text: #23170c;
+  --text-strong: #120b05;
+  --muted: #6b5238;
+  --accent: #c62828;
+  --accent-ink: #fff8ef;
+  --in: #1f4e8c;
+  --ok: #2e7d32;
+  --warn: #b07a00;
+  --danger-bg: #fbe3dc;
+  --danger-border: #b3261e;
+  --danger-text: #8c1d18;
+  --hard: #2a1c10;
+  --shadow-color: #5a3b1c;
+  --shadow-1: 2px 2px 0 var(--shadow-color);
+  --shadow-2: 3px 3px 0 var(--shadow-color);
+  --shadow-3: 6px 6px 0 var(--shadow-color);
+
+  --code-comment: #7a6650;
+  --code-string: #2e7d32;
+  --code-regex: #1f6f8b;
+  --code-number: #a0521a;
+  --code-keyword: #7b2d8e;
+  --code-punct: #6b5238;
+  --code-gutter: #a58c6c;
+  --code-selector: #a02c4a;
+  --code-prop: #1f4e8c;
+  color-scheme: light;
+}
+
+/* Grano de corcho en CSS puro: tres capas de puntitos con distinto paso,
+   para que el patrón no se note repetido. */
+:root[data-theme='corkboard'] body {
+  background-color: #c49a6c;
+  background-image:
+    radial-gradient(rgba(92, 58, 26, 0.38) 1px, transparent 1.6px),
+    radial-gradient(rgba(255, 236, 200, 0.26) 1px, transparent 1.6px),
+    radial-gradient(rgba(70, 42, 16, 0.3) 1.5px, transparent 2.2px);
+  background-size: 7px 7px, 11px 11px, 19px 19px;
+  background-position: 0 0, 3px 5px, 9px 2px;
+}
+
 * {
   box-sizing: border-box;
 }

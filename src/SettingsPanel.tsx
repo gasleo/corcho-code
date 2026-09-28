@@ -1,11 +1,11 @@
-import type { ThemeName } from './theme';
+import { THEMES, themeInfo, type ThemeName } from './theme';
 import { COLOR_KEYS, currentColor, type EdgeShape, type Settings } from './settings';
 
 interface Props {
   settings: Settings;
   theme: ThemeName;
   onChange: (next: Settings) => void;
-  onToggleTheme: () => void;
+  onSelectTheme: (theme: ThemeName) => void;
   onClose: () => void;
 }
 
@@ -15,7 +15,7 @@ const SHAPES: { value: EdgeShape; label: string; hint: string }[] = [
 ];
 
 /** Panel de preferencias: se aplica en vivo y se guarda en el navegador. */
-export function SettingsPanel({ settings, theme, onChange, onToggleTheme, onClose }: Props) {
+export function SettingsPanel({ settings, theme, onChange, onSelectTheme, onClose }: Props) {
   const overrides = settings.colors[theme];
 
   const setColor = (key: string, value: string | null) => {
@@ -59,12 +59,25 @@ export function SettingsPanel({ settings, theme, onChange, onToggleTheme, onClos
           </section>
 
           <section>
-            <h4>
-              colores · tema {theme === 'dark' ? 'oscuro' : 'claro'}
-              <button className="btn" onClick={onToggleTheme} title="Cambiar de tema (t)">
-                {theme === 'dark' ? '☀ claro' : '☾ oscuro'}
-              </button>
-            </h4>
+            <h4>tema</h4>
+            <p className="modal-hint">
+              Sin elección guardada, arranca en corcho.
+            </p>
+            <div className="segmented-group">
+              {THEMES.map((option) => (
+                <button
+                  key={option.id}
+                  className={theme === option.id ? 'on' : ''}
+                  onClick={() => onSelectTheme(option.id)}
+                >
+                  {option.glyph} {option.label}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h4>colores · tema {themeInfo(theme).label}</h4>
             <p className="modal-hint">
               Cada tema guarda sus propios colores. Lo que no toques sigue el tema.
             </p>

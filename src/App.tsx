@@ -8,7 +8,7 @@ import { SettingsPanel } from './SettingsPanel';
 import { STORAGE_PREFIX } from './storage';
 import { setApiRoot } from './api';
 import { applyColors, loadSettings, paletteFor, saveSettings, type Settings } from './settings';
-import { persistTheme, readTheme, type ThemeName } from './theme';
+import { nextTheme, persistTheme, readTheme, themeInfo, type ThemeName } from './theme';
 import { parentIndex, type Subspace } from './treeLayout';
 
 interface SavedUI {
@@ -94,7 +94,7 @@ export default function App() {
   const [edgeMode, setEdgeMode] = useState<EdgeMode>('selection');
   const [focusId, setFocusId] = useState<string | null>(null);
   const [windows, setWindows] = useState<WindowState[]>([]);
-  const [theme, setTheme] = useState<ThemeName>('dark');
+  const [theme, setTheme] = useState<ThemeName>('corkboard');
   const [dockHot, setDockHot] = useState(false);
   const [menu, setMenu] = useState<Menu | null>(null);
   const [panels, setPanels] = useState<PanelsState>(() => loadPanels());
@@ -132,9 +132,15 @@ export default function App() {
 
   const swapPanels = useCallback(() => setPanels((prev) => ({ ...prev, swapped: !prev.swapped })), []);
 
+  const selectTheme = useCallback((next: ThemeName) => {
+    persistTheme(next);
+    setTheme(next);
+  }, []);
+
+  /** El botón y la tecla t recorren corcho → oscuro → claro. */
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
-      const next = prev === 'dark' ? 'light' : 'dark';
+      const next = nextTheme(prev);
       persistTheme(next);
       return next;
     });
@@ -753,9 +759,9 @@ export default function App() {
         <button
           className="btn btn-icon"
           onClick={toggleTheme}
-          title={`Cambiar a tema ${theme === 'dark' ? 'claro' : 'oscuro'} (t)`}
+          title={`Tema ${themeInfo(theme).label} · cambiar a ${themeInfo(nextTheme(theme)).label} (t)`}
         >
-          {theme === 'dark' ? '☀' : '☾'}
+          {themeInfo(nextTheme(theme)).glyph}
         </button>
         <button
           className="btn btn-icon"
@@ -933,7 +939,7 @@ export default function App() {
           settings={settings}
           theme={theme}
           onChange={setSettings}
-          onToggleTheme={toggleTheme}
+          onSelectTheme={selectTheme}
           onClose={() => setShowSettings(false)}
         />
       )}

@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import type { Graph, TreeNode } from '../shared/types';
 import { drawFile, drawFolder } from './icons';
 import type { EdgeShape } from './settings';
+import { corkPattern } from './cork';
 import type { CanvasPalette } from './theme';
 import {
   layoutSubspace,
@@ -207,7 +208,7 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
       canvas.height = Math.round(vh * dpr);
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = palette.bg;
+    ctx.fillStyle = palette.texture === 'cork' ? corkPattern(ctx, palette.bg) : palette.bg;
     ctx.fillRect(0, 0, vw, vh);
 
     const sx = (x: number) => x * scale + tx;
@@ -370,7 +371,20 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
         if (mode === 'out') ctx.strokeStyle = palette.edgeOut;
         else if (mode === 'in') ctx.strokeStyle = palette.edgeIn;
         else ctx.strokeStyle = palette.edge;
+        // Solo las resaltadas: la sombra en canvas es cara y son pocas.
+        const lifted = !!mode && !!palette.stringShadow;
+        if (lifted) {
+          ctx.shadowColor = palette.stringShadow!;
+          ctx.shadowOffsetY = 1.5;
+          ctx.shadowBlur = 2;
+        }
+        ctx.lineCap = 'round';
         ctx.stroke();
+        if (lifted) {
+          ctx.shadowColor = 'transparent';
+          ctx.shadowOffsetY = 0;
+          ctx.shadowBlur = 0;
+        }
 
         if (mode) {
           const size = 8;
@@ -420,10 +434,13 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
         ctx.stroke();
       }
       if (offsets.has(node.id)) {
-        ctx.beginPath();
-        ctx.arc(x + r, y - r, Math.max(2, r * 0.18), 0, Math.PI * 2);
-        ctx.fillStyle = palette.pin;
-        ctx.fill();
+        if (palette.pushpin) drawPushpin(ctx, x + r * 0.15, y - r * 1.05, Math.max(3, r * 0.3), palette.pin);
+        else {
+          ctx.beginPath();
+          ctx.arc(x + r, y - r, Math.max(2, r * 0.18), 0, Math.PI * 2);
+          ctx.fillStyle = palette.pin;
+          ctx.fill();
+        }
       }
 
       const fontSize = Math.min(13, Math.max(8, r * 0.72));
@@ -431,17 +448,37 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
         ctx.font = `${node.node.kind === 'dir' ? '700 ' : ''}${fontSize}px ${palette.font}`;
         ctx.fillStyle = dim ? palette.labelDim : palette.label;
         const room = LABEL_ROOM * scale;
+        /** Escribe la etiqueta, sobre un papelito si el tema lo pide. */
+        const write = (text: string, tx: number, ty: number, align: CanvasTextAlign, color: string) => {
+          ctx.textAlign = align;
+          if (palette.labelTag) {
+            const w = ctx.measureText(text).width;
+            const h = fontSize + 6;
+            const left = align === 'right' ? tx - w - 4 : align === 'center' ? tx - w / 2 - 4 : tx - 4;
+            ctx.beginPath();
+            ctx.roundRect(left, ty - h / 2, w + 8, h, 3);
+            ctx.fillStyle = palette.labelTag;
+            ctx.fill();
+            if (palette.labelTagEdge) {
+              ctx.strokeStyle = palette.labelTagEdge;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+          ctx.fillStyle = color;
+          ctx.fillText(text, tx, ty);
+        };
+
+        const color = dim ? palette.labelDim : palette.label;
         if (node.sublabel) {
           // El pivote lleva el nombre debajo del icono: a los costados le entran
           // las flechas y el texto quedaria tachado.
-          ctx.textAlign = 'center';
-          ctx.fillText(fitText(node.label, room), x, y + r * 1.5 + fontSize * 0.6);
+          write(fitText(node.label, room), x, y + r * 1.5 + fontSize * 0.6, 'center', color);
           ctx.font = `${fontSize * 0.82}px ${palette.font}`;
-          ctx.fillStyle = palette.labelMuted;
-          ctx.fillText(fitText(node.sublabel, room), x, y + r * 1.5 + fontSize * 1.75);
+          write(fitText(node.sublabel, room), x, y + r * 1.5 + fontSize * 1.9, 'center', palette.labelMuted);
         } else {
-          if (node.labelSide === 'left') ctx.textAlign = 'right';
-          ctx.fillText(fitText(node.label, room), node.labelSide === 'left' ? x - r * 1.35 : x + r * 1.35, y);
+          const side = node.labelSide === 'left';
+          write(fitText(node.label, room), side ? x - r * 1.35 : x + r * 1.35, y, side ? 'right' : 'left', color);
         }
         ctx.textAlign = 'left';
       }
@@ -661,3 +698,24 @@ export const CanvasGraph = forwardRef<CanvasHandle, Props>(function CanvasGraph(
     </div>
   );
 });
+
+/** Chinche vista desde arriba: sombra corrida, cabeza de color y un brillo. */
+function drawPushpin(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string) {
+  ctx.beginPath();
+  ctx.ellipse(x + r * 0.35, y + r * 0.45, r, r * 0.8, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(40, 20, 5, 0.35)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = Math.max(1, r * 0.18);
+  ctx.strokeStyle = 'rgba(40, 10, 5, 0.6)';
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(x - r * 0.35, y - r * 0.35, r * 0.32, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fill();
+}

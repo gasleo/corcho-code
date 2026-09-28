@@ -32,7 +32,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   edgeShape: 'curve',
-  colors: { dark: {}, light: {} },
+  colors: { dark: {}, light: {}, corkboard: {} },
 };
 
 const KEY = `${STORAGE_PREFIX}settings`;
@@ -47,6 +47,7 @@ export function loadSettings(): Settings {
       colors: {
         dark: saved.colors?.dark ?? {},
         light: saved.colors?.light ?? {},
+        corkboard: saved.colors?.corkboard ?? {},
       },
     };
   } catch {
@@ -114,9 +115,9 @@ export function currentColor(key: string, theme: ThemeName, overrides: ColorOver
     case 'warn':
       return palette.match;
     case 'surface':
-      return theme === 'dark' ? '#1b1e26' : '#fffdf6';
+      return { dark: '#1b1e26', light: '#fffdf6', corkboard: '#f6ead2' }[theme];
     case 'ok':
-      return theme === 'dark' ? '#8fd694' : '#1f7a3d';
+      return { dark: '#8fd694', light: '#1f7a3d', corkboard: '#2e7d32' }[theme];
     default:
       return '#888888';
   }
