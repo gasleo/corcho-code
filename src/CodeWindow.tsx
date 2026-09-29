@@ -24,6 +24,8 @@ export interface WindowState {
   openedFrom?: string;
   /** Mostrar sus hilos. Sin valor, se muestran. */
   threads?: boolean;
+  /** Último pedido de ir a la declaración de un símbolo (`gd` desde otra ventana). */
+  goto?: { symbol: string; seq: number };
 }
 
 /** Las ventanas fijadas viven en una capa por encima de las normales. */
@@ -44,10 +46,10 @@ interface Props {
   onPatch: (id: string, patch: (current: WindowState) => WindowState) => void;
   onClose: (id: string) => void;
   onRaise: (id: string) => void;
-  /** Abrir otro fichero desde esta ventana: `from` es el id de esta. */
-  onOpenFile: (id: string, from: string) => void;
-  /** Pasar a la ventana siguiente o anterior. */
-  onWindow: (dir: 'next' | 'prev', from: string) => void;
+  /** Abrir otro fichero desde esta ventana: `from` es el id de esta; `symbol`, dónde dejar el cursor. */
+  onOpenFile: (id: string, from: string, symbol?: string) => void;
+  /** Pasar a la ventana siguiente o anterior, o volver a la que abrió esta. */
+  onWindow: (dir: 'next' | 'prev' | 'up', from: string) => void;
   onDockHint: (over: boolean) => void;
   onMenu: (id: string, x: number, y: number) => void;
 }
@@ -249,8 +251,9 @@ export function CodeWindow({
           imports={imports}
           onClose={() => onClose(state.id)}
           onDirty={setDirty}
-          onOpenFile={(target) => onOpenFile(target, state.id)}
+          onOpenFile={(target, symbol) => onOpenFile(target, state.id, symbol)}
           onWindow={(dir) => onWindow(dir, state.id)}
+          jumpTo={state.goto}
         />
       )}
     </div>

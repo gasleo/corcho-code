@@ -64,7 +64,7 @@ Los controles siguen la convención de macOS: **semáforo arriba a la izquierda*
 - **Minimizar** guarda la ventana en la barra de abajo sin perder su tamaño, posición, zoom ni scroll.
 - **Fijar** (◎ / ◉, arriba a la derecha) deja esa ventana por encima de las demás aunque hagas clic en otra. Útil para tener el fichero de referencia siempre a la vista mientras abrís otros.
 - Coloreado de sintaxis propio, sin dependencias (`highlight.ts`), con un léxico para JS/TS y otro para hojas de estilo: pasar un `.css` por el de JS convertía la primera `url(/img/a.png)` en una expresión regular y se comía media hoja.
-- **Las conexiones van marcadas en el código**: cada identificador que viene de otro fichero aparece resaltado y subrayado, con la ruta de origen en el tooltip; Ctrl+clic abre ese fichero en otra ventana. Lo que exporta el propio fichero va en otro color. Así se sigue una función hasta donde está definida sin salir del canvas. En una hoja de estilo el papel del identificador lo hacen `$gap`, `--brand` o el mixin de un `@include`: Ctrl+clic abre el parcial donde está definido.
+- **Las conexiones van marcadas en el código**: cada identificador que viene de otro fichero aparece resaltado y subrayado, con la ruta de origen en el tooltip; Ctrl+clic te lleva a su definición, en otra ventana. Lo que exporta el propio fichero va en otro color. Así se sigue una función hasta donde está definida sin salir del canvas. En una hoja de estilo el papel del identificador lo hacen `$gap`, `--brand` o el mixin de un `@include`: Ctrl+clic abre el parcial donde está definido.
 
 ### Edición con teclas de vim
 
@@ -72,12 +72,13 @@ Los controles siguen la convención de macOS: **semáforo arriba a la izquierda*
 
 El **mouse maneja el cursor de vim**: un clic lo lleva a ese carácter y seleccionar arrastrando entra en modo visual con esa misma selección, así que después podés operar con `d`, `y` o `c` sobre lo que marcaste con el mouse. La selección nativa del navegador se limpia sola: manda el resaltado de vim.
 
-**Ctrl+clic** sobre un identificador conectado abre el fichero de origen —el clic pelado mueve el cursor— y **`gf`** hace lo mismo con el símbolo bajo el cursor, como en vim.
+**Ctrl+clic** sobre un identificador conectado va a su definición —el clic pelado mueve el cursor— y **`gd`** hace lo mismo con el símbolo bajo el cursor, como en vim.
 
 Lo que hay implementado:
 
 - **Movimiento**: `h j k l`, `w b e`, `W B E`, `0 ^ $`, `gg`, `G`, `{n}G`, `{ }` (párrafos), `%` (el par del paréntesis), `f F t T{char}` con `;` y `,`, Ctrl+D / Ctrl+U, con conteo (`3w`, `5j`, `2f,`).
-- **`gf`**: abre el fichero del que viene el símbolo bajo el cursor.
+- **Navegación de código**: `gd` va a la definición del símbolo bajo el cursor. Si viene de otro fichero, lo abre en una ventana nueva —atada con un hilo— con el cursor en la declaración; si es local, salta ahí en el mismo fichero. `gD` busca solo en el fichero actual, `gf` abre el fichero de origen sin mover el cursor, y `K` muestra en la barra de estado de dónde viene el símbolo y la línea que lo declara.
+- **Lista de saltos**: `gd`, `G`, `gg`, `n`, `N`, `*`, `#`, `%`, `{`, `}` y las búsquedas recuerdan desde dónde saliste. Ctrl+O vuelve y Ctrl+I avanza; si en el fichero no queda adónde volver, Ctrl+O vuelve a la ventana que abrió esta, así después de un `gd` a otro fichero Ctrl+O te trae de vuelta.
 - **Inserción**: `i a I A o O s S`, Esc para volver a normal. Las líneas nuevas conservan la sangría y Ctrl+W borra la palabra anterior.
 - **Operadores** con movimiento y conteo: `d`, `c`, `y`, `>`, `<` (`dw`, `d$`, `2dd`, `cw`, `yy`, `dt)`, `>>`…), más `x X D C Y J ~`, `{n}r{char}`, `p` / `P` y Ctrl+A / Ctrl+X para sumar o restar al número bajo el cursor.
 - **Objetos de texto**: `iw aw iW aW`, `i" a" i' a' i` a``, `i( a( ib`, `i[ a[`, `i{ a{ iB`, `i< a<` — con cualquier operador (`ciw`, `di(`, `ya"`, `>i{`) o en visual (`vi{`).
@@ -153,7 +154,7 @@ El preview envuelve con eso todo lo que renderiza. Si no existe y el componente 
 
 ### Hilos entre ventanas
 
-Una ventana abierta desde otra —con Ctrl+clic sobre un símbolo o con `gf`— nace a su derecha y queda atada con un hilo. El hilo sale por un conector en el borde **derecho** de la ventana que la abrió y entra por un conector en el borde **izquierdo** de la abierta, a la altura de la barra de título, así la cadena se lee de izquierda a derecha. Con muchas abiertas se sigue viendo de dónde salió cada una.
+Una ventana abierta desde otra —con Ctrl+clic sobre un símbolo, `gd` o `gf`— nace a su derecha y queda atada con un hilo. El hilo sale por un conector en el borde **derecho** de la ventana que la abrió y entra por un conector en el borde **izquierdo** de la abierta, a la altura de la barra de título, así la cadena se lee de izquierda a derecha. Con muchas abiertas se sigue viendo de dónde salió cada una.
 
 Los hilos de la ventana activa se dibujan **por encima** de todas las ventanas, para seguirlos aunque crucen otras; los demás van por detrás. En el tema corcho son lana. Un clic en un conector **muestra u oculta** las conexiones de esa ventana: lleno si se ven, hueco si están ocultas. El vínculo se guarda con las ventanas, y el hilo desaparece mientras alguna de las dos esté minimizada o cerrada.
 

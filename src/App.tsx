@@ -339,13 +339,18 @@ export default function App() {
    * Abre el fichero en una ventana, o trae al frente la que ya estaba. Si se
    * abre desde otra ventana, nace al lado de ella y queda atada con un hilo.
    */
+  const gotoSeq = useRef(0);
   const openCode = useCallback(
-    (id: string, view: 'code' | 'preview' = 'code', from?: string) => {
+    (id: string, view: 'code' | 'preview' = 'code', from?: string, symbol?: string) => {
+      // `gd`: además de abrir, el editor deja el cursor en la declaración.
+      const goto = symbol ? { symbol, seq: ++gotoSeq.current } : undefined;
       setWindows((prev) => {
         topZ.current += 1;
         const z = topZ.current;
         if (prev.some((w) => w.id === id)) {
-          return prev.map((w) => (w.id === id ? { ...w, z, docked: false, view } : w));
+          return prev.map((w) =>
+            w.id === id ? { ...w, z, docked: false, view: goto ? 'code' : view, goto: goto ?? w.goto } : w,
+          );
         }
         const parent = from ? prev.find((w) => w.id === from && !w.docked) : undefined;
         const step = prev.length % 6;
@@ -381,6 +386,7 @@ export default function App() {
             fontSize: 12,
             view,
             openedFrom: parent?.id,
+            goto,
           },
         ];
       });
@@ -390,7 +396,10 @@ export default function App() {
     [focusEditor],
   );
 
-  const openFromWindow = useCallback((id: string, from: string) => openCode(id, 'code', from), [openCode]);
+  const openFromWindow = useCallback(
+    (id: string, from: string, symbol?: string) => openCode(id, 'code', from, symbol),
+    [openCode],
+  );
 
   const closeCode = useCallback((id: string) => {
     setWindows((prev) => prev.filter((w) => w.id !== id));
@@ -452,9 +461,9 @@ export default function App() {
 
   /** Sube por el hilo a la ventana que abrió esta, o baja a la última que abrió. */
   const followThread = useCallback(
-    (dir: 'up' | 'down') => {
+    (dir: 'up' | 'down', from?: string) => {
       const list = windowsRef.current;
-      const current = currentWindow();
+      const current = currentWindow(from);
       if (!current) return;
       const target =
         dir === 'up'
@@ -999,7 +1008,7 @@ export default function App() {
               onClose={closeCode}
               onRaise={raiseCode}
               onOpenFile={openFromWindow}
-              onWindow={cycleWindow}
+              onWindow={(dir, from) => (dir === 'up' ? followThread('up', from) : cycleWindow(dir, from))}
               onDockHint={setDockHot}
               onMenu={windowMenu}
             />

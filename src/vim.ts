@@ -54,6 +54,10 @@ export interface VimAction {
   quitWithoutSaving?: boolean;
   /** `gt` / `gT`: pasar a la ventana siguiente o anterior. */
   window?: 'next' | 'prev';
+  /** `gd`: ir a la definición (en otro fichero si viene de ahí). `gD`: solo en este. */
+  definition?: 'any' | 'local';
+  /** `K`: contar qué es el símbolo bajo el cursor. */
+  hover?: boolean;
 }
 
 export interface VimResult {
@@ -713,6 +717,8 @@ function step(state: VimState, event: KeyEvent): VimResult {
 
   if (suffix === 'g') {
     if (key === 'f') return { state: reset, action: { openUnderCursor: true } };
+    if (key === 'd') return { state: reset, action: { definition: 'any' } };
+    if (key === 'D') return { state: reset, action: { definition: 'local' } };
     if (key === 't') return { state: reset, action: { window: 'next' } };
     if (key === 'T') return { state: reset, action: { window: 'prev' } };
     if (key === 'g') {
@@ -909,6 +915,8 @@ function step(state: VimState, event: KeyEvent): VimResult {
       if (!word) return { state: { ...reset, message: 'no hay palabra bajo el cursor' } };
       return { state: { ...runSearch(state, word, key === '*'), pending: '' } };
     }
+    case 'K':
+      return { state: reset, action: { hover: true } };
     case 'n':
       return { state: runSearch(state, state.search, !shift) };
     case 'N':

@@ -64,7 +64,7 @@ The controls follow the macOS convention: **traffic lights at the top left** —
 - **Minimize** stores the window in the bottom dock without losing its size, position, zoom or scroll.
 - **Pin** (◎ / ◉, top right) keeps that window above the others even when you click another one. Handy to keep a reference file in sight while you open others.
 - Built-in, dependency-free syntax highlighting (`highlight.ts`), with one lexer for JS/TS and another for stylesheets: running a `.css` through the JS one turned the first `url(/img/a.png)` into a regular expression and swallowed half the sheet.
-- **Connections are marked in the code**: every identifier coming from another file is highlighted and underlined, with the source path in its tooltip; Ctrl+click opens that file in another window. What the file itself exports gets its own color. You can follow a function to where it is defined without leaving the canvas. In a stylesheet, `$gap`, `--brand` or the mixin of an `@include` play the identifier's role: Ctrl+click opens the partial where it is defined.
+- **Connections are marked in the code**: every identifier coming from another file is highlighted and underlined, with the source path in its tooltip; Ctrl+click takes you to its definition, in another window. What the file itself exports gets its own color. You can follow a function to where it is defined without leaving the canvas. In a stylesheet, `$gap`, `--brand` or the mixin of an `@include` play the identifier's role: Ctrl+click opens the partial where it is defined.
 
 ![Code window in vim mode, with a visual-line selection and cross-file symbols underlined](docs/screenshots/vim.png)
 
@@ -75,12 +75,13 @@ The controls follow the macOS convention: **traffic lights at the top left** —
 
 **The mouse drives the vim cursor**: a click moves it to that character, and drag-selecting enters visual mode with that same selection, so you can then apply `d`, `y` or `c` to whatever you marked with the mouse. The browser's native selection is cleared: vim's highlight rules.
 
-**Ctrl+click** on a connected identifier opens its source file —a plain click moves the cursor— and **`gf`** does the same with the symbol under the cursor, as in vim.
+**Ctrl+click** on a connected identifier goes to its definition —a plain click moves the cursor— and **`gd`** does the same with the symbol under the cursor, as in vim.
 
 What is implemented:
 
 - **Motion**: `h j k l`, `w b e`, `W B E`, `0 ^ $`, `gg`, `G`, `{n}G`, `{ }` (paragraphs), `%` (matching bracket), `f F t T{char}` with `;` and `,`, Ctrl+D / Ctrl+U, with counts (`3w`, `5j`, `2f,`).
-- **`gf`**: opens the file the symbol under the cursor comes from.
+- **Code navigation**: `gd` goes to the definition of the symbol under the cursor. If it comes from another file, that file opens in a new window —tied with a thread— with the cursor on the declaration; if it is local, it jumps there in the same file. `gD` only looks in the current file, `gf` opens the source file without moving the cursor, and `K` shows in the status line where the symbol comes from and the line that declares it.
+- **Jump list**: `gd`, `G`, `gg`, `n`, `N`, `*`, `#`, `%`, `{`, `}` and searches remember where you left from. Ctrl+O goes back and Ctrl+I forward; with nothing left to go back to in the file, Ctrl+O returns to the window that opened this one, so after a `gd` into another file Ctrl+O brings you back.
 - **Insert**: `i a I A o O s S`, Esc back to normal. New lines keep the current indentation and Ctrl+W deletes the previous word.
 - **Operators** with motion and count: `d`, `c`, `y`, `>`, `<` (`dw`, `d$`, `2dd`, `cw`, `yy`, `dt)`, `>>`…), plus `x X D C Y J ~`, `{n}r{char}`, `p` / `P` and Ctrl+A / Ctrl+X to increment the number under the cursor.
 - **Text objects**: `iw aw iW aW`, `i" a" i' a' i` a``, `i( a( ib`, `i[ a[`, `i{ a{ iB`, `i< a<` — with any operator (`ciw`, `di(`, `ya"`, `>i{`) or in visual mode (`vi{`).
@@ -156,7 +157,7 @@ The preview wraps everything it renders with it. If it doesn't exist and the com
 
 ### Threads between windows
 
-A window opened from another one —with Ctrl+click on a symbol or `gf`— is born to its right and stays tied to it with a thread. The thread leaves through a connector on the **right** edge of the window that opened it and enters through a connector on the **left** edge of the opened one, at title bar height, so the chain reads left to right. With many windows open you can still tell where each one came from.
+A window opened from another one —with Ctrl+click on a symbol, `gd` or `gf`— is born to its right and stays tied to it with a thread. The thread leaves through a connector on the **right** edge of the window that opened it and enters through a connector on the **left** edge of the opened one, at title bar height, so the chain reads left to right. With many windows open you can still tell where each one came from.
 
 The threads of the active window are drawn **above** every window, so you can follow them even when they cross others; the rest go behind. In the corkboard theme they are yarn. Clicking a connector **shows or hides** that window's connections: filled means visible, hollow means hidden. The link is saved with the windows, and the thread disappears while either of them is minimized or closed.
 
