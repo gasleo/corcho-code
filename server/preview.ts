@@ -52,6 +52,9 @@ export interface PreviewBundle {
 }
 
 /** Los assets no deben romper el build: se meten inline o se ignoran. */
+/** Módulos virtuales de Rollup volcados a disco (`x.js_commonjs-module`, `x.js_commonjs-exports`…). */
+const ROLLUP_VIRTUAL = /\.[cm]?js_[\w-]+$/;
+
 const LOADERS: Record<string, esbuild.Loader> = {
   // Muchos proyectos meten JSX en ficheros .js; esbuild no lo asume solo.
   '.js': 'jsx',
@@ -203,6 +206,13 @@ function stubPlugin(options: {
       build.onLoad({ filter: /.*/, namespace: 'file' }, async (args) => {
         try {
           await fs.promises.access(args.path);
+          // Rollup con preserveModules deja en disco sus módulos virtuales de
+          // CommonJS: `index.js?commonjs-module` se vuelve el fichero
+          // `index.js_commonjs-module`. Es JS normal con una extensión que
+          // esbuild no conoce.
+          if (ROLLUP_VIRTUAL.test(args.path)) {
+            return { contents: await fs.promises.readFile(args.path, 'utf8'), loader: 'js' };
+          }
           return null;
         } catch {
           onStub(path.basename(args.path));
