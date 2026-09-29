@@ -17,6 +17,8 @@ interface Props {
   /** Avisa si hay cambios sin guardar, para marcarlo en el título. */
   onDirty: (dirty: boolean) => void;
   onOpenFile: (id: string) => void;
+  /** `gt` / `gT`: pasar a otra ventana. */
+  onWindow: (dir: 'next' | 'prev') => void;
 }
 
 interface Origin {
@@ -37,7 +39,7 @@ const MODE_LABEL: Record<VimState['mode'], string> = {
  * comportamiento del navegador, así que Ctrl+R, Ctrl+S, Ctrl+P, Ctrl+F, Ctrl+D
  * y Ctrl+U son del editor, no del escritorio.
  */
-export function VimEditor({ file, fontSize, wrap, exports, imports, onClose, onDirty, onOpenFile }: Props) {
+export function VimEditor({ file, fontSize, wrap, exports, imports, onClose, onDirty, onOpenFile, onWindow }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [focused, setFocused] = useState(false);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -125,6 +127,10 @@ export function VimEditor({ file, fontSize, wrap, exports, imports, onClose, onD
         shift: e.shiftKey,
       });
       update(next);
+      if (action?.window) {
+        onWindow(action.window);
+        return;
+      }
       if (action?.openUnderCursor) {
         // `gf`: el símbolo bajo el cursor sabe de qué fichero viene.
         const word = wordAt(next.text, next.cursor);
@@ -136,7 +142,7 @@ export function VimEditor({ file, fontSize, wrap, exports, imports, onClose, onD
       if (action?.save) void save(action.close ? onClose : undefined);
       else if (action?.close) onClose();
     },
-    [save, onClose, update, origins, onOpenFile],
+    [save, onClose, update, origins, onOpenFile, onWindow],
   );
 
   // eslint-disable-next-line react-hooks/exhaustive-deps

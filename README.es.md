@@ -76,20 +76,23 @@ El **mouse maneja el cursor de vim**: un clic lo lleva a ese carácter y selecci
 
 Lo que hay implementado:
 
-- **Movimiento**: `h j k l`, `w b e`, `0 ^ $`, `gg`, `G`, `{n}G`, Ctrl+D / Ctrl+U, con conteo (`3w`, `5j`).
+- **Movimiento**: `h j k l`, `w b e`, `W B E`, `0 ^ $`, `gg`, `G`, `{n}G`, `{ }` (párrafos), `%` (el par del paréntesis), `f F t T{char}` con `;` y `,`, Ctrl+D / Ctrl+U, con conteo (`3w`, `5j`, `2f,`).
 - **`gf`**: abre el fichero del que viene el símbolo bajo el cursor.
-- **Inserción**: `i a I A o O`, Esc para volver a normal.
-- **Operadores** con movimiento y conteo: `d`, `c`, `y` (`dw`, `d$`, `2dd`, `cw`, `yy`…), más `x D C s J r{char}` y `p` / `P`.
-- **Visual**: `v` y `V`, con `d`, `c`, `y`, `x`.
-- **Deshacer / rehacer**: `u` y Ctrl+R.
-- **Búsqueda**: `/patrón`, `n`, `N`.
-- **Comandos**: `:w`, `:q`, `:q!`, `:wq`, `:x`, `:noh`, `:{número}`.
+- **Inserción**: `i a I A o O s S`, Esc para volver a normal. Las líneas nuevas conservan la sangría y Ctrl+W borra la palabra anterior.
+- **Operadores** con movimiento y conteo: `d`, `c`, `y`, `>`, `<` (`dw`, `d$`, `2dd`, `cw`, `yy`, `dt)`, `>>`…), más `x X D C Y J ~`, `{n}r{char}`, `p` / `P` y Ctrl+A / Ctrl+X para sumar o restar al número bajo el cursor.
+- **Objetos de texto**: `iw aw iW aW`, `i" a" i' a' i` a``, `i( a( ib`, `i[ a[`, `i{ a{ iB`, `i< a<` — con cualquier operador (`ciw`, `di(`, `ya"`, `>i{`) o en visual (`vi{`).
+- **Repetir**: `.` repite el último cambio, con el texto insertado incluido.
+- **Visual**: `v` y `V`, con `d`, `c`, `y`, `x`, `>`, `<`, `~`, `o` (saltar al otro extremo) y `p` (reemplazar la selección).
+- **Deshacer / rehacer**: `u` y Ctrl+R; todo lo tipeado en una inserción se deshace de una vez.
+- **Búsqueda**: `/patrón`, `?patrón`, `n`, `N`, y `*` / `#` para la palabra bajo el cursor.
+- **Comandos**: `:w`, `:q`, `:q!`, `:wq`, `:x`, `:noh`, `:{número}`, `:bn` / `:bp`.
+- **Ventanas**: `gt` / `gT` pasan a la ventana de código siguiente o anterior.
 
 La barra de estado muestra el modo, el fichero, si hay cambios sin guardar (`[+]`, también con un punto en el título de la ventana), la posición y las teclas a medio comando.
 
 `:w` **escribe en disco de verdad** — es la única operación de la app que modifica el proyecto, vía `PUT /api/file`, acotada a la carpeta abierta. Tras guardar, el grafo no se recalcula solo: usá ↻ para volver a analizar.
 
-Lo que **no** está: macros, marcas, `.`, registros con nombre, texto-objetos (`ciw`, `di(`), reemplazo global (`:s`) y ventanas partidas.
+Lo que **no** está: macros, marcas, registros con nombre, objetos de etiqueta (`it`), reemplazo global (`:s`) y ventanas partidas.
 
 ### Preview de componentes
 
@@ -147,6 +150,22 @@ export function Providers({ children }) {
 ```
 
 El preview envuelve con eso todo lo que renderiza. Si no existe y el componente falla, el propio error explica cómo crearlo. Para el resto de los casos —dependencias sin instalar, un alias que esbuild no resuelve— el error de compilación se muestra tal cual, que suele ser justo lo que hace falta saber.
+
+### Hilos entre ventanas
+
+Una ventana abierta desde otra —con Ctrl+clic sobre un símbolo o con `gf`— nace a su derecha y queda atada con un hilo. El hilo sale por un conector en el borde **derecho** de la ventana que la abrió y entra por un conector en el borde **izquierdo** de la abierta, a la altura de la barra de título, así la cadena se lee de izquierda a derecha. Con muchas abiertas se sigue viendo de dónde salió cada una.
+
+Los hilos de la ventana activa se dibujan **por encima** de todas las ventanas, para seguirlos aunque crucen otras; los demás van por detrás. En el tema corcho son lana. Un clic en un conector **muestra u oculta** las conexiones de esa ventana: lleno si se ven, hueco si están ocultas. El vínculo se guarda con las ventanas, y el hilo desaparece mientras alguna de las dos esté minimizada o cerrada.
+
+### Cambiar de ventana
+
+Desde cualquier lado, aunque el cursor esté dentro de un editor:
+
+- **Alt + → / Alt + ←** pasan a la ventana siguiente o anterior, en el orden de la barra. Si estaba minimizada, vuelve de la barra.
+- **Alt + ↑** sube por el hilo a la ventana que abrió la actual; **Alt + ↓** baja a la última que abrió.
+- Dentro del editor, `gt` y `gT` hacen lo mismo que Alt + → / ←.
+
+El teclado pasa directo al editor de la ventana a la que llegás. Son flechas y no `[` `]` porque en teclado latinoamericano esos piden AltGr, y Ctrl+W lo reserva el navegador.
 
 ### La barra de ventanas
 
@@ -217,6 +236,8 @@ El lienzo no puede leer variables CSS mientras pinta, así que la paleta vive do
 | <kbd>s</kbd> | subespacio del fichero seleccionado |
 | <kbd>t</kbd> | cambiar de tema (corcho → oscuro → claro) |
 | <kbd>Esc</kbd> | salir de pantalla completa → del subespacio → de la selección |
+| <kbd>Alt</kbd> + <kbd>→</kbd> / <kbd>←</kbd> | ventana de código siguiente / anterior |
+| <kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd> | ventana que abrió la actual / última que abrió |
 
 ## Cómo está armado
 

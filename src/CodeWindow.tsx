@@ -20,6 +20,10 @@ export interface WindowState {
   fontSize: number;
   /** El código se edita con vim; la otra vista es el componente renderizado. */
   view: 'code' | 'preview';
+  /** Ventana desde la que se abrió esta (Ctrl+clic o `gf`): se unen con un hilo. */
+  openedFrom?: string;
+  /** Mostrar sus hilos. Sin valor, se muestran. */
+  threads?: boolean;
 }
 
 /** Las ventanas fijadas viven en una capa por encima de las normales. */
@@ -40,7 +44,10 @@ interface Props {
   onPatch: (id: string, patch: (current: WindowState) => WindowState) => void;
   onClose: (id: string) => void;
   onRaise: (id: string) => void;
-  onOpenFile: (id: string) => void;
+  /** Abrir otro fichero desde esta ventana: `from` es el id de esta. */
+  onOpenFile: (id: string, from: string) => void;
+  /** Pasar a la ventana siguiente o anterior. */
+  onWindow: (dir: 'next' | 'prev', from: string) => void;
   onDockHint: (over: boolean) => void;
   onMenu: (id: string, x: number, y: number) => void;
 }
@@ -55,6 +62,7 @@ export function CodeWindow({
   onClose,
   onRaise,
   onOpenFile,
+  onWindow,
   onDockHint,
   onMenu,
 }: Props) {
@@ -100,15 +108,18 @@ export function CodeWindow({
     if (!el) return;
     const observer = new ResizeObserver(() => {
       const current = stateRef.current;
-      if (current.focused) return;
+      if (current.focused || current.docked) return;
       const rect = el.getBoundingClientRect();
+      // Al minimizar, el elemento sale del DOM y se lee 0×0: eso no es un tamaño.
+      if (!el.isConnected || rect.width < 1 || rect.height < 1) return;
       if (Math.abs(rect.width - current.w) > 1 || Math.abs(rect.height - current.h) > 1) {
         onChange({ ...current, w: Math.round(rect.width), h: Math.round(rect.height) });
       }
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [onChange]);
+    // Al volver de la barra el elemento es otro: hay que observar el nuevo.
+  }, [onChange, state.docked]);
 
   const startDrag = useCallback(
     (e: React.MouseEvent) => {
@@ -133,6 +144,7 @@ export function CodeWindow({
     <div
       ref={rootRef}
       className={`code-window${state.focused ? ' focused' : ''}`}
+      data-window={state.id}
       style={
         state.focused
           ? { zIndex: state.z + (state.pinned ? PIN_LAYER : 0) }
@@ -237,7 +249,8 @@ export function CodeWindow({
           imports={imports}
           onClose={() => onClose(state.id)}
           onDirty={setDirty}
-          onOpenFile={onOpenFile}
+          onOpenFile={(target) => onOpenFile(target, state.id)}
+          onWindow={(dir) => onWindow(dir, state.id)}
         />
       )}
     </div>

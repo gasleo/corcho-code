@@ -677,6 +677,95 @@ kbd {
   pointer-events: none;
 }
 
+/* Hilos entre una ventana y la que la abrió: debajo de las ventanas. */
+.window-threads {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.window-thread path {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.window-thread .thread-shadow {
+  stroke: var(--shadow-color);
+  stroke-opacity: 0.35;
+  stroke-width: 3;
+  transform: translate(1px, 2px);
+}
+
+.window-thread .thread-line {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-dasharray: 7 5;
+  opacity: 0.75;
+}
+
+.window-thread .thread-strands {
+  display: none;
+}
+
+/*
+ * Conector en el borde de la ventana: entrada a la izquierda, salida a la
+ * derecha. Lleno cuando las conexiones se ven, hueco cuando están ocultas.
+ */
+.window-port {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: var(--surface);
+  box-shadow: 1px 1px 0 var(--shadow-color);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.window-port.on {
+  background: var(--accent);
+}
+
+.window-port:hover {
+  transform: scale(1.25);
+}
+
+.window-port:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* En el corcho el conector es una chinche. */
+:root[data-theme='corkboard'] .window-port.on {
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.7) 0 18%, transparent 20%), var(--accent);
+}
+
+.window-thread.hot .thread-line {
+  stroke-dasharray: none;
+  opacity: 1;
+  stroke-width: 3;
+}
+
+/* En el corcho el hilo es lana de verdad: continuo, con hebras y chinches. */
+:root[data-theme='corkboard'] .window-thread .thread-line {
+  stroke-dasharray: none;
+  opacity: 0.9;
+}
+
+:root[data-theme='corkboard'] .window-thread .thread-strands {
+  display: inline;
+  stroke: rgba(255, 240, 220, 0.45);
+  stroke-width: 1.1;
+  stroke-dasharray: 3 4;
+}
+
 .code-window {
   position: absolute;
   display: flex;

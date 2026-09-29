@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Edge, Graph, TreeNode } from '../shared/types';
 import { CanvasGraph, type CanvasHandle, type EdgeMode } from './CanvasGraph';
 import { Explorer } from './Explorer';
+import { WindowPorts, WindowThreads } from './WindowThreads';
 import { CodeWindow, MAX_FONT, MIN_FONT, type WindowState } from './CodeWindow';
 import { Inspector } from './Inspector';
 import { SettingsPanel } from './SettingsPanel';
@@ -317,40 +318,86 @@ export default function App() {
 
 
 
-  /** Abre el fichero en una ventana, o trae al frente la que ya estaba. */
-  const openCode = useCallback((id: string, view: 'code' | 'preview' = 'code') => {
-    setWindows((prev) => {
-      topZ.current += 1;
-      const z = topZ.current;
-      if (prev.some((w) => w.id === id)) {
-        return prev.map((w) => (w.id === id ? { ...w, z, docked: false, view } : w));
-      }
-      const step = prev.length % 6;
-      return [
-        ...prev,
-        {
-          id,
-          x: 70 + step * 32,
-          y: 60 + step * 30,
-          w: 640,
-          h: 440,
-          z,
-          focused: false,
-          docked: false,
-          pinned: false,
-          wrap: false,
-          fontSize: 12,
-          view,
-        },
-      ];
-    });
+  /** La ventana con la que se está trabajando: la última traída al frente. */
+  const [activeWindow, setActiveWindow] = useState<string | null>(null);
+
+  /**
+   * Lleva el teclado al editor de la ventana. El editor aparece recién cuando
+   * termina de cargar el fichero, así que se reintenta un rato.
+   */
+  const focusEditor = useCallback((id: string) => {
+    let tries = 0;
+    const attempt = () => {
+      const host = document.querySelector<HTMLElement>(`[data-window="${CSS.escape(id)}"] .vim-body`);
+      if (host) host.focus({ preventScroll: true });
+      else if (tries++ < 20) setTimeout(attempt, 50);
+    };
+    setTimeout(attempt, 0);
   }, []);
+
+  /**
+   * Abre el fichero en una ventana, o trae al frente la que ya estaba. Si se
+   * abre desde otra ventana, nace al lado de ella y queda atada con un hilo.
+   */
+  const openCode = useCallback(
+    (id: string, view: 'code' | 'preview' = 'code', from?: string) => {
+      setWindows((prev) => {
+        topZ.current += 1;
+        const z = topZ.current;
+        if (prev.some((w) => w.id === id)) {
+          return prev.map((w) => (w.id === id ? { ...w, z, docked: false, view } : w));
+        }
+        const parent = from ? prev.find((w) => w.id === from && !w.docked) : undefined;
+        const step = prev.length % 6;
+        const size = { w: 640, h: 440 };
+        let x = 70 + step * 32;
+        let y = 60 + step * 30;
+        if (parent) {
+          // A la derecha de la que la abrió, que es por donde sale el hilo. Si
+          // no entra, se corre para que al menos su conector quede afuera.
+          const room = layerRef.current?.clientWidth ?? window.innerWidth;
+          const right = parent.x + parent.w + 48;
+          const fits = room - right - 8;
+          if (fits >= 360) {
+            x = right;
+            size.w = Math.min(size.w, fits);
+          } else {
+            x = Math.max(0, Math.min(parent.x + parent.w - 120, room - size.w));
+          }
+          y = parent.y + 32;
+        }
+        return [
+          ...prev,
+          {
+            id,
+            x,
+            y,
+            ...size,
+            z,
+            focused: false,
+            docked: false,
+            pinned: false,
+            wrap: false,
+            fontSize: 12,
+            view,
+            openedFrom: parent?.id,
+          },
+        ];
+      });
+      setActiveWindow(id);
+      if (from) focusEditor(id);
+    },
+    [focusEditor],
+  );
+
+  const openFromWindow = useCallback((id: string, from: string) => openCode(id, 'code', from), [openCode]);
 
   const closeCode = useCallback((id: string) => {
     setWindows((prev) => prev.filter((w) => w.id !== id));
   }, []);
 
   const raiseCode = useCallback((id: string) => {
+    setActiveWindow(id);
     setWindows((prev) => {
       if (prev.length < 2) return prev;
       topZ.current += 1;
@@ -358,6 +405,90 @@ export default function App() {
       return prev.map((w) => (w.id === id ? { ...w, z } : w));
     });
   }, []);
+
+  /** Trae una ventana (aunque esté guardada en la barra) y le da el teclado. */
+  const activateWindow = useCallback(
+    (id: string) => {
+      setActiveWindow(id);
+      setWindows((prev) => {
+        topZ.current += 1;
+        const z = topZ.current;
+        return prev.map((w) => (w.id === id ? { ...w, z, docked: false } : w));
+      });
+      focusEditor(id);
+    },
+    [focusEditor],
+  );
+
+  const windowsRef = useRef(windows);
+  windowsRef.current = windows;
+
+  /** La ventana de referencia para moverse: la dada, la activa o la de más arriba. */
+  const currentWindow = useCallback(
+    (from?: string | null) => {
+      const list = windowsRef.current;
+      const id = from ?? activeWindow;
+      return (
+        list.find((w) => w.id === id) ??
+        [...list].filter((w) => !w.docked).sort((a, b) => b.z - a.z)[0] ??
+        list[0]
+      );
+    },
+    [activeWindow],
+  );
+
+  /** Recorre las ventanas en el orden de la barra, dando la vuelta al final. */
+  const cycleWindow = useCallback(
+    (dir: 'next' | 'prev', from?: string) => {
+      const list = windowsRef.current;
+      if (!list.length) return;
+      const current = currentWindow(from);
+      const index = current ? list.indexOf(current) : -1;
+      const next = list[(index + (dir === 'next' ? 1 : -1) + list.length) % list.length];
+      if (next) activateWindow(next.id);
+    },
+    [currentWindow, activateWindow],
+  );
+
+  /** Sube por el hilo a la ventana que abrió esta, o baja a la última que abrió. */
+  const followThread = useCallback(
+    (dir: 'up' | 'down') => {
+      const list = windowsRef.current;
+      const current = currentWindow();
+      if (!current) return;
+      const target =
+        dir === 'up'
+          ? list.find((w) => w.id === current.openedFrom)
+          : list.filter((w) => w.openedFrom === current.id).sort((a, b) => b.z - a.z)[0];
+      if (target) activateWindow(target.id);
+    },
+    [currentWindow, activateWindow],
+  );
+
+  /**
+   * Alt + flechas se atienden en captura, antes que el editor, para que
+   * funcionen igual con el foco en el canvas o dentro de una ventana.
+   * `[` y `]` en teclado latinoamericano piden AltGr, y Ctrl+W lo reserva el
+   * navegador: por eso las flechas.
+   */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || !windowsRef.current.length) return;
+      const handlers: Record<string, () => void> = {
+        ArrowRight: () => cycleWindow('next'),
+        ArrowLeft: () => cycleWindow('prev'),
+        ArrowUp: () => followThread('up'),
+        ArrowDown: () => followThread('down'),
+      };
+      const handler = handlers[e.key];
+      if (!handler) return;
+      e.preventDefault();
+      e.stopPropagation();
+      handler();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [cycleWindow, followThread]);
 
   const updateWindow = useCallback((next: WindowState) => {
     setWindows((prev) => prev.map((w) => (w.id === next.id ? next : w)));
@@ -850,6 +981,12 @@ export default function App() {
         {lastPane}
 
         <div className="windows-layer" ref={layerRef}>
+          <WindowThreads windows={windows} active={activeWindow} />
+          <WindowPorts
+            windows={windows}
+            active={activeWindow}
+            onToggle={(id) => patchWindow(id, (w) => ({ ...w, threads: w.threads === false }))}
+          />
           {windows.map((w) => (
             <CodeWindow
               key={w.id}
@@ -861,7 +998,8 @@ export default function App() {
               onPatch={patchWindow}
               onClose={closeCode}
               onRaise={raiseCode}
-              onOpenFile={openCode}
+              onOpenFile={openFromWindow}
+              onWindow={cycleWindow}
               onDockHint={setDockHot}
               onMenu={windowMenu}
             />

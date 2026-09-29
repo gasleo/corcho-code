@@ -79,20 +79,23 @@ The controls follow the macOS convention: **traffic lights at the top left** —
 
 What is implemented:
 
-- **Motion**: `h j k l`, `w b e`, `0 ^ $`, `gg`, `G`, `{n}G`, Ctrl+D / Ctrl+U, with counts (`3w`, `5j`).
+- **Motion**: `h j k l`, `w b e`, `W B E`, `0 ^ $`, `gg`, `G`, `{n}G`, `{ }` (paragraphs), `%` (matching bracket), `f F t T{char}` with `;` and `,`, Ctrl+D / Ctrl+U, with counts (`3w`, `5j`, `2f,`).
 - **`gf`**: opens the file the symbol under the cursor comes from.
-- **Insert**: `i a I A o O`, Esc back to normal.
-- **Operators** with motion and count: `d`, `c`, `y` (`dw`, `d$`, `2dd`, `cw`, `yy`…), plus `x D C s J r{char}` and `p` / `P`.
-- **Visual**: `v` and `V`, with `d`, `c`, `y`, `x`.
-- **Undo / redo**: `u` and Ctrl+R.
-- **Search**: `/pattern`, `n`, `N`.
-- **Commands**: `:w`, `:q`, `:q!`, `:wq`, `:x`, `:noh`, `:{number}`.
+- **Insert**: `i a I A o O s S`, Esc back to normal. New lines keep the current indentation and Ctrl+W deletes the previous word.
+- **Operators** with motion and count: `d`, `c`, `y`, `>`, `<` (`dw`, `d$`, `2dd`, `cw`, `yy`, `dt)`, `>>`…), plus `x X D C Y J ~`, `{n}r{char}`, `p` / `P` and Ctrl+A / Ctrl+X to increment the number under the cursor.
+- **Text objects**: `iw aw iW aW`, `i" a" i' a' i` a``, `i( a( ib`, `i[ a[`, `i{ a{ iB`, `i< a<` — with any operator (`ciw`, `di(`, `ya"`, `>i{`) or in visual mode (`vi{`).
+- **Repeat**: `.` repeats the last change, inserted text included.
+- **Visual**: `v` and `V`, with `d`, `c`, `y`, `x`, `>`, `<`, `~`, `o` (jump to the other end) and `p` (replace the selection).
+- **Undo / redo**: `u` and Ctrl+R; everything typed in one insert is undone at once.
+- **Search**: `/pattern`, `?pattern`, `n`, `N`, and `*` / `#` for the word under the cursor.
+- **Commands**: `:w`, `:q`, `:q!`, `:wq`, `:x`, `:noh`, `:{number}`, `:bn` / `:bp`.
+- **Windows**: `gt` / `gT` go to the next or previous code window.
 
 The status line shows the mode, the file, unsaved changes (`[+]`, also as a dot in the window title), the position and any pending keys.
 
 `:w` **really writes to disk** — it is the only operation in the app that modifies the project, via `PUT /api/file`, restricted to the opened folder. After saving, the graph is not recomputed automatically: use ↻ to analyze again.
 
-Not implemented: macros, marks, `.`, named registers, text objects (`ciw`, `di(`), global substitution (`:s`) and split windows.
+Not implemented: macros, marks, named registers, tag text objects (`it`), global substitution (`:s`) and split windows.
 
 ### Component preview
 
@@ -150,6 +153,22 @@ export function Providers({ children }) {
 ```
 
 The preview wraps everything it renders with it. If it doesn't exist and the component fails, the error itself explains how to create it. For everything else —uninstalled dependencies, an alias esbuild cannot resolve— the build error is shown as-is, which is usually exactly what you need to know.
+
+### Threads between windows
+
+A window opened from another one —with Ctrl+click on a symbol or `gf`— is born to its right and stays tied to it with a thread. The thread leaves through a connector on the **right** edge of the window that opened it and enters through a connector on the **left** edge of the opened one, at title bar height, so the chain reads left to right. With many windows open you can still tell where each one came from.
+
+The threads of the active window are drawn **above** every window, so you can follow them even when they cross others; the rest go behind. In the corkboard theme they are yarn. Clicking a connector **shows or hides** that window's connections: filled means visible, hollow means hidden. The link is saved with the windows, and the thread disappears while either of them is minimized or closed.
+
+### Switching windows
+
+From anywhere, even with the cursor inside an editor:
+
+- **Alt + → / Alt + ←** go to the next or previous window, in dock order. A minimized window comes back from the dock.
+- **Alt + ↑** climbs the thread to the window that opened the current one; **Alt + ↓** goes down to the last one it opened.
+- Inside the editor, `gt` and `gT` do the same as Alt + → / ←.
+
+The keyboard goes straight to the editor of the window you land on. Arrows instead of `[` `]` because those need AltGr on a Latin American keyboard, and Ctrl+W is reserved by the browser.
 
 ### The dock
 
@@ -220,6 +239,8 @@ The canvas cannot read CSS variables while painting, so the palette lives twice,
 | <kbd>s</kbd> | subspace of the selected file |
 | <kbd>t</kbd> | switch theme (corkboard → dark → light) |
 | <kbd>Esc</kbd> | leave fullscreen → the subspace → the selection |
+| <kbd>Alt</kbd> + <kbd>→</kbd> / <kbd>←</kbd> | next / previous code window |
+| <kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd> | window that opened this one / last one it opened |
 
 ## How it's built
 
