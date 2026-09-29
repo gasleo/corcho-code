@@ -133,6 +133,8 @@ Las clases no se renombran —el preview monta un componente solo, no hay colisi
 
 Un componente que usa `useLocation`, `Link` o `useNavigate` explota si no hay un Router arriba, y eso no dice nada del componente: es contexto que en la app real pone el arranque. Si el proyecto tiene `react-router-dom`, el preview envuelve lo que renderiza en un `MemoryRouter` por su cuenta, y lo avisa en la barra para que quede claro que ese contexto lo puso él y no el componente.
 
+Con Redux pasa lo mismo. Si el proyecto tiene `react-redux`, el preview busca en `src/` el store que exporta la app (`configureStore` o `createStore`) y envuelve el componente con él. Cuando la app lo provee con un contexto propio —`<Provider context={ModuleContext} store={store}>`, habitual en los microfrontends— también provee ese contexto, así los hooks armados con `createSelectorHook(ModuleContext)` lo encuentran. Es el store de verdad con los reducers de verdad: las llamadas a la API siguen fallando sin backend, pero el componente se monta. Si existe el decorador `corcho.preview.tsx`, los proveedores quedan a cargo de él.
+
 ### Proveedores del proyecto
 
 Una pantalla que necesita store, i18n o tema falla al montarse suelta. Para eso, un fichero opcional en la raíz del proyecto:

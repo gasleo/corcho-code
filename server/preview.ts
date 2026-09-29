@@ -34,6 +34,86 @@ export class PreviewUnsupported extends Error {}
 /** Contextos que el preview provee por su cuenta, sin que el proyecto haga nada. */
 interface AppShell {
   router: boolean;
+  redux: ReduxShell | null;
+}
+
+/** Un export con nombre de un fichero del proyecto, listo para importar. */
+interface ProjectExport {
+  file: string;
+  name: string;
+}
+
+/** El store real del proyecto y los contextos propios con que lo provee. */
+interface ReduxShell {
+  store: ProjectExport;
+  contexts: ProjectExport[];
+}
+
+const SOURCE_EXT = /\.(tsx?|jsx?|mjs|cjs)$/;
+const SKIP_DIR = new Set(['node_modules', 'dist', 'build', 'coverage', '.git', '__test__', '__tests__', '__mocks__']);
+const TEST_FILE = /\.(test|spec|stories)\.[jt]sx?$/;
+
+/** Ficheros fuente de `src/` (o de la raíz si no hay), sin tests ni builds. */
+function sourceFiles(root: string, limit = 4000): string[] {
+  const base = fs.existsSync(path.join(root, 'src')) ? path.join(root, 'src') : root;
+  const out: string[] = [];
+  const walk = (dir: string) => {
+    if (out.length >= limit) return;
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        if (!SKIP_DIR.has(entry.name)) walk(path.join(dir, entry.name));
+      } else if (SOURCE_EXT.test(entry.name) && !TEST_FILE.test(entry.name) && !entry.name.endsWith('.d.ts')) {
+        out.push(path.join(dir, entry.name));
+      }
+    }
+  };
+  walk(base);
+  return out;
+}
+
+/**
+ * Busca cómo arma Redux la app: el store exportado (configureStore o
+ * createStore) y los contextos propios que se pasan a <Provider context={X}>,
+ * que es lo que usan los microfrontends para no pisarse el store entre sí.
+ * Con eso el preview envuelve el componente igual que el arranque de la app.
+ */
+function findReduxShell(root: string): ReduxShell | null {
+  if (!resolveFrom(root, 'react-redux')) return null;
+  const stores: ProjectExport[] = [];
+  const contextNames = new Set<string>();
+  const contextDefs = new Map<string, string>();
+  for (const file of sourceFiles(root)) {
+    let text: string;
+    try {
+      text = fs.readFileSync(file, 'utf8');
+    } catch {
+      continue;
+    }
+    const posix = file.split(path.sep).join('/');
+    for (const m of text.matchAll(/export\s+const\s+(\w+)\s*(?::[^=]+)?=\s*(?:configureStore|createStore|legacy_createStore)\s*\(/g)) {
+      stores.push({ file: posix, name: m[1] });
+    }
+    if (/export\s+default\s+(?:configureStore|createStore|legacy_createStore)\s*\(/.test(text)) {
+      stores.push({ file: posix, name: 'default' });
+    }
+    for (const m of text.matchAll(/<Provider\b[^>]*\bcontext=\{\s*(\w+)\s*\}/g)) contextNames.add(m[1]);
+    for (const m of text.matchAll(/export\s+const\s+(\w+)\s*=\s*(?:React\.)?createContext\b/g)) {
+      if (!contextDefs.has(m[1])) contextDefs.set(m[1], posix);
+    }
+  }
+  if (!stores.length) return null;
+  // Si hay más de uno, el que vive en una carpeta o fichero llamado store.
+  const store = stores.find((s) => /store/i.test(s.file)) ?? stores[0];
+  const contexts = [...contextNames]
+    .filter((name) => contextDefs.has(name))
+    .map((name) => ({ file: contextDefs.get(name)!, name }));
+  return { store, contexts };
 }
 
 export interface PreviewBundle {
@@ -330,6 +410,29 @@ function decoratorFile(root: string): string | null {
   return null;
 }
 
+function reduxImports(redux: ReduxShell | null): string {
+  if (!redux) return '';
+  const lines = ["import { Provider as ReduxProvider } from 'react-redux';"];
+  lines.push(
+    redux.store.name === 'default'
+      ? `import __corchoStore from ${JSON.stringify(redux.store.file)};`
+      : `import { ${redux.store.name} as __corchoStore } from ${JSON.stringify(redux.store.file)};`,
+  );
+  redux.contexts.forEach((ctx, i) => {
+    lines.push(`import { ${ctx.name} as __corchoContext${i} } from ${JSON.stringify(ctx.file)};`);
+  });
+  return lines.join('\n');
+}
+
+function reduxWrap(redux: ReduxShell | null): string {
+  if (!redux) return 'node';
+  let expr = 'React.createElement(ReduxProvider, { store: __corchoStore }, node)';
+  redux.contexts.forEach((_, i) => {
+    expr = `React.createElement(ReduxProvider, { store: __corchoStore, context: __corchoContext${i} }, ${expr})`;
+  });
+  return expr;
+}
+
 function entrySource(
   importPath: string,
   exportName: string,
@@ -341,14 +444,18 @@ import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import * as mod from ${JSON.stringify(importPath)};
 ${shell.router ? "import { MemoryRouter } from 'react-router-dom';" : ''}
+${reduxImports(shell.redux)}
 ${decorator ? `import * as decoration from ${JSON.stringify(decorator)};` : 'const decoration = {};'}
 const Providers = decoration.Providers ?? decoration.default ?? ((props) => props.children);
 
 // Armazon minimo de la app: un componente que usa useLocation, Link o
 // useNavigate revienta si no hay Router arriba, y eso no dice nada del
 // componente, es contexto que en la app real pone el arranque.
+// Redux: el store real de la app, provisto en el contexto por defecto y en
+// cada contexto propio que use el arranque.
+const withRedux = (node) => ${reduxWrap(shell.redux)};
 const withShell = (node) =>
-  ${shell.router ? 'React.createElement(MemoryRouter, { initialEntries: ["/"] }, node)' : 'node'};
+  ${shell.router ? 'React.createElement(MemoryRouter, { initialEntries: ["/"] }, withRedux(node))' : 'withRedux(node)'};
 
 const Component = mod[${JSON.stringify(exportName)}] ?? mod.default;
 const BR = String.fromCharCode(10);
@@ -417,9 +524,17 @@ export async function bundleComponent(
   exportName: string,
 ): Promise<PreviewBundle> {
   const importPath = absFile.split(path.sep).join('/');
-  const shell: AppShell = { router: !!resolveFrom(root, 'react-router-dom') };
-  const entry = entrySource(importPath, exportName, decoratorFile(root), shell);
-  const shellNames = shell.router ? ['MemoryRouter'] : [];
+  const decorator = decoratorFile(root);
+  const shell: AppShell = {
+    router: !!resolveFrom(root, 'react-router-dom'),
+    // Si hay decorador, los proveedores los pone el proyecto: no se duplican.
+    redux: decorator ? null : findReduxShell(root),
+  };
+  const entry = entrySource(importPath, exportName, decorator, shell);
+  const shellNames = [
+    ...(shell.router ? ['MemoryRouter'] : []),
+    ...(shell.redux ? ['Redux store (' + path.basename(shell.redux.store.file) + ')'] : []),
+  ];
 
   const isNative = !!resolveFrom(root, 'react-native');
   const ownReact = ownPackage('react');

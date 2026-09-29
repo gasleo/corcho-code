@@ -136,6 +136,8 @@ Classes are not renamed —the preview mounts a single component, so there are n
 
 A component that uses `useLocation`, `Link` or `useNavigate` blows up without a Router above it, and that says nothing about the component: that context is provided by the app's bootstrap. If the project has `react-router-dom`, the preview wraps what it renders in a `MemoryRouter` on its own, and says so in the toolbar to make clear that the context came from the preview, not from the component.
 
+Redux works the same way. If the project has `react-redux`, the preview looks in `src/` for the store the app exports (`configureStore` or `createStore`) and wraps the component with it. When the app provides the store through its own context —`<Provider context={ModuleContext} store={store}>`, common in microfrontends— that context is provided too, so hooks built with `createSelectorHook(ModuleContext)` find it. It's the real store with the real reducers: API calls still fail without a backend, but the component renders. If a `corcho.preview.tsx` decorator exists, the preview leaves providers to it.
+
 ### Project providers
 
 A screen that needs a store, i18n or a theme fails when mounted on its own. For that, there is an optional file at the project root:
